@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>STAR-LDM Inference Optimization - Poster</title>
+<style>
+@page { size: 40in 30in; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    width: 40in; height: 30in;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a;
+    display: flex; flex-direction: column;
+    padding: 0.25in;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+.header {
+    background: linear-gradient(135deg, #B31B1B 0%, #7b1113 100%);
+    color: white; padding: 0.3in 0.4in;
+    border-radius: 6px; margin-bottom: 0.15in;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.header h1 { font-size: 28pt; font-weight: 700; line-height: 1.15; max-width: 72%; }
+.header .meta { text-align: right; font-size: 13pt; line-height: 1.5; }
+.header .meta .name { font-size: 17pt; font-weight: 600; }
+.content { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.15in; }
+.box {
+    background: white; border-radius: 5px; padding: 0.2in;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex; flex-direction: column; overflow: hidden;
+}
+.box h2 {
+    font-size: 15pt; color: #B31B1B; margin-bottom: 0.08in;
+    padding-bottom: 0.04in; border-bottom: 2px solid #B31B1B;
+}
+.box h3 { font-size: 11.5pt; color: #333; margin: 0.06in 0 0.03in; }
+.box p, .box li { font-size: 10.5pt; line-height: 1.35; }
+.box ul { padding-left: 0.18in; }
+.box li { margin-bottom: 0.02in; }
+.box img { width: 100%; height: auto; margin: 0.05in 0; }
+.box table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 0.05in 0; }
+.box th { background: #f0f0f0; padding: 3px 5px; text-align: left; border-bottom: 2px solid #ddd; font-size: 9.5pt; }
+.box td { padding: 3px 5px; border-bottom: 1px solid #eee; }
+.box td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.highlight { background: #e8f5e9; font-weight: 600; }
+.key-finding { background: #fff8e1; border-left: 4px solid #FF9800; }
+.key-finding h2 { color: #E65100; border-bottom-color: #FF9800; }
+.future { background: #e3f2fd; border-left: 4px solid #1976D2; }
+.future h2 { color: #1565C0; border-bottom-color: #1976D2; }
+.span2 { grid-column: span 2; }
+.bold { font-weight: 700; }
+.red { color: #c62828; }
+.green { color: #2e7d32; }
+.small { font-size: 9pt; }
+.footer {
+    margin-top: 0.1in; padding: 0.1in 0.3in;
+    background: #333; color: #bbb; border-radius: 5px;
+    font-size: 9pt; display: flex; justify-content: space-between;
+}
+/* Architecture diagram as styled divs */
+.arch-flow { display: flex; align-items: center; gap: 4px; margin: 0.06in 0; flex-wrap: wrap; justify-content: center; }
+.arch-box { padding: 5px 8px; border-radius: 4px; color: white; font-size: 8.5pt; text-align: center; font-weight: 600; line-height: 1.2; }
+.arch-arrow { font-size: 14pt; color: #888; }
+.arch-label { font-size: 7.5pt; color: #666; text-align: center; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Inference Optimization for Hybrid Diffusion-Autoregressive Language Models</h1>
+    <div class="meta">
+        <div class="name">Srivatsa Kundurthy</div>
+        Cornell University, CS 5220<br>
+        Spring 2026 &bull; srk247@cornell.edu
+    </div>
+</div>
+
+<div class="content">
+
+<!-- ═══ COLUMN 1: INTRODUCTION & BACKGROUND (~25%) ═══ -->
+
+<div class="box">
+    <h2>1. STAR-LDM: Hybrid Diffusion + AR</h2>
+    <p>STAR-LDM (COLM 2025) combines <b>latent diffusion planning</b> with <b>autoregressive generation</b> to produce higher-quality text than pure AR models.</p>
+
+    <h3>Quality Advantage</h3>
+    <table>
+        <tr><th>Model</th><th>Params</th><th>MAUVE &uarr;</th></tr>
+        <tr><td>GPT-2 Large</td><td class="num">770M</td><td class="num">85.2</td></tr>
+        <tr><td>GPT-2 XL</td><td class="num">1.5B</td><td class="num">86.6</td></tr>
+        <tr class="highlight"><td><b>STAR-LDM</b></td><td class="num">956M</td><td class="num bold">94.6</td></tr>
+    </table>
+    <p class="small">MAUVE measures distributional similarity to human text (higher = better). STAR-LDM achieves a +8 point gap over GPT-2 XL despite being smaller.</p>
+
+    <h3>The Stop-Think-AutoRegress Pipeline</h3>
+    <p><b>1. Stop:</b> Encode prefix tokens through GPT-2, cache KV projections.</p>
+    <p><b>2. Think:</b> Run a 50-step diffusion loop. At each step:</p>
+    <div class="arch-flow">
+        <div class="arch-box" style="background:#4A148C;">z<sub>t</sub><br><span style="font-size:7pt">(768-dim)</span></div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-box" style="background:#1565C0;">SPG<br><span style="font-size:7pt">6 layers</span></div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-box" style="background:#B71C1C;">GPT-2<br><span style="font-size:7pt">36 layers</span></div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-box" style="background:#2E7D32;">ScoreNet<br><span style="font-size:7pt">6 layers</span></div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-box" style="background:#E65100;">DDPM<br><span style="font-size:7pt">update</span></div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-box" style="background:#4A148C;">z<sub>t-1</sub></div>
+    </div>
+    <p class="small">The noised 768-dim sentence embedding z<sub>t</sub> is split into 8 soft-prompt tokens (1280-dim) by the Soft Prompt Generator, fed through GPT-2 Large alongside cached prefix KV, then the ScoreNet Head predicts the v-target for a DDPM denoising update. This repeats T=50 times.</p>
+    <p><b>3. AutoRegress:</b> Final soft prompts condition GPT-2 for token-by-token text generation.</p>
+
+    <h3>The Problem</h3>
+    <p>Each diffusion step invokes the <b>full 770M-param GPT-2 backbone</b>. At 50 steps, this makes STAR-LDM <b>~2.3x slower</b> than GPT-2 Large alone, despite producing better text. The authors note their implementation is "not optimized for inference speed."</p>
+</div>
+
+<div class="box">
+    <h2>2. Profiling: Where Does Time Go?</h2>
+    <img src="figures/fig1_profiling_pie.png" alt="Profiling pie chart">
+    <p>Profiled on <b>50 C4 prompts</b> (M4 Max, 50 steps, unoptimized). GPT-2 accounts for <b class="red">77.2%</b> of total inference time (38.7% diffusion loop + 38.5% AR generation).</p>
+
+    <h3>The Real Bottleneck: Dispatch Overhead</h3>
+    <img src="figures/fig4_dispatch_count.png" alt="Dispatch count">
+    <p>Using <code>torch.profiler</code>, we count <b class="red">6,185</b> ATen operator dispatches per v-prediction call. Only <b class="green">432</b> (7%) perform computation. The rest: attention mask construction, cache management, tensor reshaping, type checking.</p>
+    <p>At ~3.4&mu;s per dispatch, framework overhead alone accounts for ~21ms per call, matching measured latency.</p>
+
+    <h3>Roofline Analysis</h3>
+    <img src="figures/fig3_roofline.png" alt="Roofline">
+    <p class="small">Micro-transformer ops (RMSNorm, attention on 8 tokens) achieve <b class="red">&lt;1%</b> of the M4 Max roofline ceiling. Not compute-bound, not memory-bound: <b>dispatch-latency-bound</b>.</p>
+</div>
+
+<!-- ═══ COLUMNS 2-3: WHAT WE ACCOMPLISHED (~50%) ═══ -->
+
+<div class="box">
+    <h2>3. Optimizations</h2>
+
+    <h3>A. Streamlined GPT-2 Forward</h3>
+    <p>Replace HuggingFace's <code>GPT2LMHeadModel.forward()</code> with <b>40 lines of PyTorch</b> that perform only the essential computation:</p>
+    <ul>
+        <li>Eliminate attention mask construction (72 dispatches)</li>
+        <li>Remove DynamicCache management overhead</li>
+        <li>Skip tensor format conversions and view ops</li>
+        <li>Use <code>F.linear</code> directly on layer weights</li>
+    </ul>
+    <p>Reduces dispatches from <b>6,185 &rarr; 432</b> per call. <b class="green">3.6x faster</b> on the component that is 70% of runtime.</p>
+
+    <h3>B. KV-Cache with Pre-Allocated Buffers</h3>
+    <p>Compute prefix KV projections <b>once</b>, reuse across all diffusion steps. Pre-allocate contiguous (prefix_len + 8) buffers for each of 36 layers. The naive <code>torch.cat</code> approach allocates 1,800 new tensors per generation, causing 10x slowdown on long prefixes. Pre-allocation eliminates all allocation from the diffusion loop.</p>
+    <p>Per-step cost: <b>O(1)</b> vs O(prefix_len) baseline.</p>
+
+    <h3>C. Metal Compute Shaders (1,700 lines)</h3>
+    <p>6 custom Apple Metal GPU kernels for micro-transformer operations:</p>
+    <table>
+        <tr><th>Kernel</th><th>What it fuses</th><th>Result</th></tr>
+        <tr class="highlight"><td>RMSNorm+FiLM</td><td>3 dispatches &rarr; 1</td><td class="green bold">1.69x</td></tr>
+        <tr class="highlight"><td>Tiny Attention</td><td>Register-resident 8&times;8</td><td class="green bold">2.39x</td></tr>
+        <tr><td>DDPM Step</td><td>17 dispatches &rarr; 1</td><td class="red">0.35x</td></tr>
+        <tr><td>Decode-N Attn</td><td>Online softmax streaming</td><td>1.97x (S&lt;40 only)</td></tr>
+        <tr><td>Fused FFN</td><td>LN+GEMM+GELU+GEMM</td><td class="red">0.01x</td></tr>
+        <tr><td>Spec Verify</td><td>Softmax+accept/reject</td><td class="red">0.13x</td></tr>
+    </table>
+    <p class="small"><b>2 of 6 kernels deliver speedups.</b> The others lose because dispatch overhead exceeds compute (DDPM, Spec Verify), BLAS is already optimal (FFN), or the crossover is too narrow (Decode-N).</p>
+</div>
+
+<div class="box">
+    <h2>4. Results</h2>
+
+    <h3>Prefix Length Scaling (20 diffusion steps)</h3>
+    <img src="figures/fig2_prefix_scaling.png" alt="Prefix scaling">
+    <table>
+        <tr><th>Prefix</th><th>Baseline</th><th>Optimized</th><th>Speedup</th></tr>
+        <tr><td>16 tok</td><td class="num">921 ms</td><td class="num">748 ms</td><td class="num">1.23x</td></tr>
+        <tr><td>64 tok</td><td class="num">1,072 ms</td><td class="num">765 ms</td><td class="num">1.40x</td></tr>
+        <tr><td>128 tok</td><td class="num">1,321 ms</td><td class="num">801 ms</td><td class="num">1.65x</td></tr>
+        <tr><td>256 tok</td><td class="num">1,835 ms</td><td class="num">853 ms</td><td class="num">2.15x</td></tr>
+        <tr class="highlight"><td>512 tok</td><td class="num">2,894 ms</td><td class="num">982 ms</td><td class="num bold green">2.95x</td></tr>
+    </table>
+    <p>Speedup scales with prefix length because the baseline cost is O(prefix_len) per step while our optimized cost is ~O(1).</p>
+
+    <h3>100-Prompt Evaluation</h3>
+    <table>
+        <tr><th></th><th>Mean</th><th>Std</th></tr>
+        <tr><td>Baseline (HF, no KV)</td><td class="num">1,590 ms</td><td class="num">279 ms</td></tr>
+        <tr class="highlight"><td>Optimized</td><td class="num bold">1,379 ms</td><td class="num green bold">50 ms</td></tr>
+    </table>
+    <p class="small">1.15x overall speedup, <b>5.6x lower variance</b>. 100 prompts across 4 prefix-length buckets (5-200 tokens).</p>
+
+    <h3>Negative Results</h3>
+    <ul>
+        <li><b>Picard parallel diffusion:</b> Convergence too slow (GPT-2 denoiser is too nonlinear)</li>
+        <li><b>torch.compile on MPS:</b> 2-3x <i>slower</i></li>
+        <li><b>Fused FFN kernel:</b> 127x slower than Apple BLAS</li>
+    </ul>
+</div>
+
+<!-- ═══ COLUMN 4: FUTURE WORK (~25%) ═══ -->
+
+<div class="box future">
+    <h2>5. Future Work (Final Report)</h2>
+
+    <h3>A. Cross-Platform CUDA Comparison</h3>
+    <p>Run the identical benchmark suite on NVIDIA A100 (CUDA/Triton) to test whether our findings generalize:</p>
+    <ul>
+        <li>Does the streamlined forward help on CUDA, or is framework overhead MPS-specific?</li>
+        <li>Does <code>torch.compile</code> with CUDA Graphs succeed where MPS failed?</li>
+        <li>How do Metal kernel speedups compare to Triton equivalents?</li>
+    </ul>
+    <p class="small">Expected: CUDA Graphs should reduce dispatch overhead more effectively than our manual approach. The comparison isolates which bottlenecks are hardware-specific vs framework-specific.</p>
+
+    <h3>B. Quality Validation</h3>
+    <p>Generate 5,000 C4 continuations with both pipelines. Compute MAUVE and perplexity to verify optimizations preserve output quality.</p>
+    <p class="small">Critical because our fast forward drops causal masking on the 8 soft prompts. The SPG generates them non-causally, so this may be correct, but needs empirical validation.</p>
+
+    <h3>C. Model Scheduling</h3>
+    <p>Profile v-prediction error at each noise level. Hypothesis: at early (high noise) and late (low noise) steps, GPT-2 adds minimal value. Replace it with cheap SPG+ScoreNet-only path (~3ms vs ~12ms/step) at "easy" steps.</p>
+    <p class="small">Training-free. Could reduce diffusion loop cost by 30-40%.</p>
+
+    <h3>D. Consistency Distillation (Stretch)</h3>
+    <p>Train a student score network to map z<sub>t</sub> &rarr; z<sub>0</sub> in 1-4 steps instead of 50, following LCM (Luo et al., 2024). STAR-LDM's 768-dim embedding space is much smoother than pixel space, suggesting few-step distillation should be effective.</p>
+    <p class="small">At 4 steps: diffusion loop drops from ~600ms to ~50ms. Total pipeline: ~550ms (faster than GPT-2 Large with better quality).</p>
+</div>
+
+<div class="box key-finding">
+    <h2>Key Takeaway</h2>
+    <p style="font-size: 13pt; line-height: 1.5; margin: 0.08in 0;">
+        For hybrid diffusion-AR models, the primary inference bottleneck is <b>framework dispatch overhead</b>, not GPU kernel performance.
+    </p>
+    <p style="font-size: 11pt; line-height: 1.4; margin: 0.06in 0;">
+        HuggingFace's GPT-2 issues 14x more operator dispatches than needed. A 40-line PyTorch rewrite that strips framework abstractions gives a larger speedup (3.6x on 70% of the pipeline) than six custom Metal GPU kernels combined.
+    </p>
+    <p style="font-size: 11pt; line-height: 1.4; margin: 0.06in 0;">
+        Roofline analysis reveals a <b>dispatch-latency-bound</b> regime where micro-transformer operations achieve &lt;1% of hardware ceiling. Custom kernels help for non-GEMM ops (1.7-2.4x) but cannot beat Apple's BLAS for matrix multiplications.
+    </p>
+
+    <h3 style="margin-top: 0.12in;">Hardware &amp; Software</h3>
+    <table>
+        <tr><td>Platform</td><td>Apple M4 Max, 40-core GPU, 128 GB unified memory</td></tr>
+        <tr><td>Model</td><td>STAR-LDM (956M params, COLM 2025)</td></tr>
+        <tr><td>Custom code</td><td>1,700 lines Metal/Obj-C++ (6 GPU kernels) + optimized PyTorch pipeline</td></tr>
+        <tr><td>Evaluation</td><td>100 diverse prompts, 4 prefix-length buckets, roofline + scaling analysis</td></tr>
+    </table>
+
+    <h3 style="margin-top: 0.08in;">References</h3>
+    <p class="small">
+        Lovelace et al., "STAR-LDM," COLM 2025 &bull;
+        Dao et al., "FlashAttention," NeurIPS 2022 &bull;
+        Aminabadi et al., "DeepSpeed Inference," SC 2022 &bull;
+        Williams et al., "Roofline Model," CACM 2009 &bull;
+        Yuan et al., "LLM Inference Unveiled," 2024 &bull;
+        Ansel et al., "PyTorch 2," ASPLOS 2024
+    </p>
+</div>
+
+</div>
+
+<div class="footer">
+    <div>STAR-LDM: Lovelace, Belardi, Zalouk, Polavaram, <b>Kundurthy</b>, Weinberger (COLM 2025) &bull; Code + results: github.com/star-ldm</div>
+    <div>CS 5220: Applied High-Performance and Parallel Computing &bull; Prof. Giulia Guidi &bull; Cornell University &bull; Spring 2026</div>
+</div>
+
+</body>
+</html>

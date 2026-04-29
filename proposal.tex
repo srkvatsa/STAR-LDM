@@ -1,0 +1,132 @@
+\documentclass[sigconf,authordraft]{acmart}
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{Bib\TeX}}}
+
+\setcopyright{none}
+\settopmatter{printacmref=false, printccs=false, printfolios=true}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+\usepackage{booktabs}
+\usepackage{enumitem}
+\setlist{nosep, leftmargin=*}
+
+\begin{document}
+
+\title{Fused GPU Kernels for Micro-Workloads in Hybrid\\Diffusion-Autoregressive Language Model Inference}
+
+\author{Srivatsa Kundurthy}
+\affiliation{%
+  \institution{Cornell University}
+  \city{Ithaca}
+  \state{New York}
+  \country{USA}}
+\email{sk2793@cornell.edu}
+
+\renewcommand{\shortauthors}{Kundurthy}
+
+\begin{abstract}
+Hybrid diffusion-autoregressive language models such as STAR-LDM execute a multi-step diffusion loop where each iteration launches dozens of GPU kernels on tiny tensors (8 tokens, 768 dimensions)---a regime where standard primitives like FlashAttention and cuBLAS carry overhead that dominates actual compute. This project develops custom fused GPU kernels in Apple Metal Shading Language and Triton/CUDA targeting these micro-workloads, applies roofline analysis to characterize the bottleneck regime, and compares parallelization strategies across unified-memory (Apple M4 Max) and discrete-memory (NVIDIA) GPU architectures.
+\end{abstract}
+
+\maketitle
+
+\section{Hypothesis}
+
+STAR-LDM~\cite{lovelace2025star} is a 956M-parameter hybrid architecture that combines a 50-step latent diffusion planner with GPT-2 Large (36 layers, 770M params) for autoregressive text generation. During inference, the model follows a \textit{Stop--Think--AutoRegress} pipeline: (1)~encode prefix tokens via GPT-2, (2)~run a 50-step diffusion loop that iteratively denoises a 768-dimensional sentence embedding by converting it to 8 soft-prompt tokens through a micro-transformer (6 layers, 1024 hidden dim), feeding those tokens through the full GPT-2 backbone, and applying a DDPM update, and (3)~generate text autoregressively from the final soft prompts.
+
+This pipeline presents two computational patterns that standard ML systems stacks handle poorly:
+
+\begin{enumerate}
+    \item \textbf{Micro-workload kernel launches.} Each micro-transformer forward pass dispatches ${\sim}$30 GPU kernels (6 layers $\times$ ${\sim}$5 ops: RMSNorm, FiLM conditioning, attention, SwiGLU FFN, residual), each operating on tensors of shape $(1, 8, 1024)$---roughly $10^4$ FLOPs per kernel. Primitives like FlashAttention~\cite{dao2024flashattention2} use tiling and online softmax engineered for long sequences; for an $8\times 8$ attention matrix that fits entirely in registers, this machinery is pure overhead.
+
+    \item \textbf{Redundant backbone computation.} Without KV-cache reuse across diffusion steps, GPT-2 re-attends over all $\texttt{prefix\_len} + 8$ tokens at each of the 50 iterations, even though only the 8 soft-prompt tokens change between steps.
+\end{enumerate}
+
+\noindent We hypothesize that:
+
+\begin{enumerate}[label=\textbf{H\arabic*.}]
+    \item \textit{Kernel dispatch overhead is the primary bottleneck} for the micro-transformer components of STAR-LDM inference, not arithmetic throughput or memory bandwidth. We expect roofline analysis to place these operations deep in the latency-bound regime, far below both the compute and bandwidth ceilings.
+
+    \item \textit{Custom fused GPU kernels} targeting fixed-size micro-workloads---fused RMSNorm+FiLM conditioning, register-resident 8-token attention, and fused DDPM denoising arithmetic---can deliver $2$--$5\times$ per-kernel speedups and $1.3$--$1.5\times$ end-to-end improvement by eliminating dispatch overhead and intermediate global memory traffic.
+
+    \item \textit{The optimal parallelization strategy differs between unified and discrete memory architectures.} On Apple Silicon's unified memory, certain micro-operations (e.g., the 768-dim DDPM update, with a 9\,KB working set) are better executed on the CPU to avoid GPU dispatch latency entirely---a heterogeneous scheduling strategy infeasible on PCIe-separated discrete GPUs.
+\end{enumerate}
+
+\section{Context}
+
+This is a \textbf{solo project} building directly on my research. I am a co-author on the STAR-LDM paper~\cite{lovelace2025star} (COLM 2025) and have access to the trained 956M-parameter checkpoint. The project scope is purely \textit{inference-time systems optimization}: the model architecture and training are complete and not part of this work. My primary development platform is a personal Apple M4 Max (128\,GB unified memory), where I write Metal compute shaders and Objective-C++ dispatch code---a non-standard toolchain that diverges from the CUDA/Triton stack taught in class but targets the same parallel programming principles (threadgroup hierarchy, occupancy, memory coalescing). I will include a CUDA/Triton implementation of each kernel for cross-platform comparison.
+
+This work has not been submitted to or used in other courses. The optimization effort may inform a future systems publication, but the kernel implementations, profiling infrastructure, and performance analysis are original to this project.
+
+\section{Key Prior Work}
+
+\textbf{STAR-LDM}~\cite{lovelace2025star} is the hybrid diffusion-autoregressive language model whose inference we optimize. It achieves state-of-the-art text generation quality (MAUVE 94.6 vs.\ 85--87 for GPT-2 Large/XL baselines) by planning in a continuous 768-dim sentence embedding space before decoding tokens. Critically, the authors note that their implementation is ``\textit{not optimized for inference speed}''---KV-caching is not used during the diffusion phase, and the prefix is re-processed at every denoising step. The paper reports ${\sim}$6\,s per sample at 50 steps, calling this a ``loose upper bound.'' Our project takes this explicitly unoptimized pipeline as the starting point for systematic performance engineering.
+
+\textbf{FlashAttention-2}~\cite{dao2024flashattention2} redesigns GPU attention kernels with IO-aware tiling, achieving 50--73\% of peak A100 FLOPs/s for long sequences ($N \geq 512$) where the $N \times N$ attention matrix dominates memory. STAR-LDM's micro-transformers operate in the complementary regime---$N{=}8$, where the entire QK$^\top$ matrix (64 values) fits in registers and tiling is unnecessary. Our register-resident kernel targets this gap.
+
+\textbf{DeepSpeed Inference}~\cite{aminabadi2022deepspeed} introduces ``deep fusion''---merging transformer operations into single GPU kernels---and demonstrates that at small batch sizes, CPU-side kernel launch overhead dominates execution time. They mitigate this via CUDA Graphs that replay pre-recorded kernel sequences. This diagnosis matches STAR-LDM: ${\sim}$30 launches per micro-transformer call $\times$ 100 calls contributes milliseconds of pure dispatch overhead. We address the same problem via operation fusion and additionally explore CPU offloading on unified memory.
+
+\textbf{Yuan et al.}~\cite{yuan2024llminference} apply roofline analysis to every layer of LLM inference, showing decode-stage operations are universally memory-bandwidth-bound. We adopt their methodology for STAR-LDM's micro-workloads, where we expect an even more extreme regime: at ${\sim}10^4$ FLOPs per kernel on tensors under 32\,KB, these operations fall below \textit{both} the bandwidth and compute ceilings, into a dispatch-latency-bound regime not analyzed in standard LLM roofline studies.
+
+\section{Empirical Methodology}
+
+\subsection{Phase 1: MPS Port and Profiling}
+
+The STAR-LDM codebase targets NVIDIA GPUs. The first step is porting inference to Apple's MPS backend---resolving unsupported operations, adapting the noise schedule and diffusion utilities for MPS-compatible tensor ops, and verifying that the ported model produces identical outputs to the CUDA baseline. Once the model runs on MPS, we profile each pipeline component (GPT-2 backbone, micro-transformers, DDPM step, autoregressive generation) using synchronous timing barriers and build a per-component runtime breakdown. We also construct a \textbf{roofline model} for each component by computing arithmetic intensity and plotting against hardware bandwidth/compute ceilings. On Apple Silicon, we supplement with Xcode Metal System Trace captures; on NVIDIA, with Nsight Compute.
+
+\subsection{Phase 2: Optimizations and Custom Kernels}
+
+Based on the profiling results, we implement optimizations in order of expected impact:
+
+\textbf{KV-cache reuse.} Restructure the diffusion loop so GPT-2's key-value projections for the static prefix are computed once and reused across all 50 steps, reducing per-step input from $\texttt{prefix\_len}+8$ to 8 tokens. This is a pure PyTorch change---no custom kernels needed.
+
+\textbf{Fused RMSNorm + FiLM conditioning.} Merge the three separate kernel dispatches (normalize, project time embedding, apply affine modulation) into a single GPU kernel. Written in Metal Shading Language for Apple and Triton for NVIDIA CUDA.
+
+\textbf{Register-resident 8-token attention.} Replace PyTorch's general-purpose attention with a specialized kernel where the full Q, K, V matrices ($8 \times 64$) fit in registers---no tiling or shared memory needed.
+
+\textbf{Fused DDPM denoising step.} Consolidate the ${\sim}$17 elementwise operations per diffusion step into one kernel on 768-dim vectors. On Apple Silicon, we also explore a CPU-only path that bypasses GPU dispatch entirely, exploiting zero-copy unified memory for this small (9\,KB) working set.
+
+\subsection{Phase 3: Performance Analysis}
+
+We evaluate with three experiments: (1)~\textbf{kernel microbenchmarks} comparing each fused kernel against its PyTorch baseline, reporting latency and roofline position; (2)~an \textbf{incremental optimization study} measuring end-to-end latency as each optimization is enabled cumulatively, with a batch size sweep ($1$--$16$) for throughput scaling; and (3)~a \textbf{cross-platform comparison} running the identical benchmark on Apple M4 Max (unified memory) and NVIDIA A100 (discrete memory) to test hypothesis H3.
+
+\textbf{Resources:} Apple M4 Max 128\,GB (personal machine) for Metal development. Cornell GPU cluster or cloud A100/H100 for CUDA/Triton comparison. Pretrained STAR-LDM checkpoint available from the research group.
+
+\section{Challenges and Obstacles}
+
+\textbf{Metal kernel tooling gap.} Apple Metal for PyTorch requires Objective-C++ dispatch code interfacing with largely undocumented MPS internals (\texttt{at::mps::getCurrentMPSStream}, \linebreak\texttt{at::native::mps::getMTLBufferStorage}). Metal Shading Language lacks standard math functions (e.g., \texttt{log1p}), requiring manual numerical workarounds. Debugging is confined to Xcode's GPU debugger, which does not integrate with Python.
+
+\textbf{Dispatch overhead floor.} If MPS/CUDA dispatch has a hard ${\sim}$10\,$\mu$s floor, fusing 3 launches to 1 saves only ${\sim}$20\,$\mu$s per call (${\sim}$24\,ms over 1{,}200 calls)---measurable but modest against ${\sim}$1.5\,s total. The true bottleneck may prove to be GPT-2's 36-layer decode attention on 8 query tokens, requiring hooks into HuggingFace internals that are substantially harder to optimize.
+
+\textbf{Cross-platform numerical parity.} Ensuring Metal and Triton produce identical results within FP tolerance requires careful treatment of reduction ordering, transcendental implementations, and mixed-precision rounding across two GPU ISAs.
+
+\textbf{Empirical roofline accuracy.} Apple does not publish L1/L2 cache sizes or per-level bandwidth for the M4 Max GPU. We must construct the roofline from microbenchmarks rather than manufacturer specs, adding uncertainty to the analysis.
+
+\bibliographystyle{ACM-Reference-Format}
+\begin{thebibliography}{4}
+
+\bibitem{lovelace2025star}
+Justin Lovelace, Christian Belardi, Sofian Zalouk, Adhitya Polavaram, Srivatsa Kundurthy, and Kilian~Q. Weinberger.
+\newblock {STAR-LDM}: Continuous sentence generation via latent diffusion with stop, think, and auto-regress.
+\newblock In \emph{Proceedings of the Conference on Language Modeling (COLM)}, 2025.
+
+\bibitem{dao2024flashattention2}
+Tri Dao.
+\newblock {FlashAttention-2}: Faster attention with better parallelism and work partitioning.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2024.
+
+\bibitem{aminabadi2022deepspeed}
+Reza~Yazdani Aminabadi, Samyam Rajbhandari, Minjia Zhang, Ammar~Ahmad Awan, Cheng Li, Du~Li, Elton Zheng, Jeff Rasley, Shaden Smith, Olatunji Ruwase, and Yuxiong He.
+\newblock {DeepSpeed Inference}: Enabling efficient inference of transformer models at unprecedented scale.
+\newblock In \emph{International Conference for High Performance Computing, Networking, Storage and Analysis (SC)}, 2022.
+
+\bibitem{yuan2024llminference}
+Zhihang Yuan, Yuzhang Shang, Yang Zhou, Zhen Dong, Zhe Zhou, Chenhao Xue, Bingzhe Wu, Zhikai Li, Qingyi Gu, Yong~Jae Lee, Yan Yan, Beidi Chen, Guangyu Sun, and Kurt Keutzer.
+\newblock {LLM} inference unveiled: Survey and roofline model insights.
+\newblock \emph{arXiv preprint arXiv:2402.16363}, 2024.
+
+\end{thebibliography}
+
+\end{document}

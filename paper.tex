@@ -1,0 +1,425 @@
+\documentclass[sigconf,authordraft]{acmart}
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{Bib\TeX}}}
+
+\setcopyright{none}
+\settopmatter{printacmref=false, printccs=false, printfolios=true}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\setlist{nosep, leftmargin=*}
+
+\begin{document}
+
+\title{Inference Optimization for Hybrid Diffusion-Autoregressive\\Language Models: Profiling, Fusion, and Framework Overhead}
+
+\author{Srivatsa Kundurthy}
+\affiliation{%
+  \institution{Cornell University}
+  \city{Ithaca}
+  \state{New York}
+  \country{USA}}
+\email{srk247@cornell.edu}
+
+\renewcommand{\shortauthors}{Kundurthy}
+
+\begin{abstract}
+Hybrid diffusion-autoregressive language models such as STAR-LDM achieve state-of-the-art text generation quality by planning in a continuous semantic space before decoding tokens. However, their inference cost is dominated by the repeated invocation of a large autoregressive backbone within a multi-step diffusion loop. We present a systematic optimization study of STAR-LDM inference on Apple Silicon, combining profiling, roofline analysis, custom Metal compute shaders, and structural code optimizations. Our analysis reveals that the primary bottleneck is not GPU kernel performance but framework-level dispatch overhead: HuggingFace's GPT-2 implementation issues 6{,}185 operator dispatches per diffusion step, of which fewer than 500 perform useful computation. By rewriting the backbone forward pass to eliminate redundant dispatches, pre-allocating KV-cache buffers, and fusing micro-transformer operations via Metal shaders, we achieve up to 2.95$\times$ end-to-end speedup on long-context inputs. We further show through roofline analysis that the micro-transformer components operate in a dispatch-latency-bound regime where neither compute nor memory bandwidth is the limiting factor. Our results demonstrate that for small-workload, high-iteration inference pipelines, the optimization surface is dominated by software infrastructure rather than hardware utilization.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+A growing body of work combines continuous diffusion processes with autoregressive (AR) language models to improve text generation quality. STAR-LDM~\cite{lovelace2025star} exemplifies this approach: a 50-step diffusion process iteratively refines a 768-dimensional sentence embedding, converting it at each step into 8 soft-prompt tokens that condition a GPT-2 Large backbone for next-token prediction. This planning mechanism produces text with substantially higher distributional similarity to human writing (MAUVE 94.6 vs.\ 85.2 for GPT-2 Large~\cite{pillutla2021mauve}), but at the cost of running the 770M-parameter backbone 50 times during inference.
+
+The inference cost of hybrid diffusion-AR models has received limited attention. Prior work on diffusion model acceleration targets image generation~\cite{song2023consistency,salimans2022progressive,dao2022flashattention}, where the denoising function is a U-Net operating on high-dimensional pixel tensors. In hybrid text models, the denoising function wraps a large pretrained transformer, creating a qualitatively different bottleneck structure: the per-step workload is small (8 tokens through 36 layers), but the iteration count is high (50 steps), and the denoising function itself is a complex software artifact with substantial framework overhead.
+
+In this paper, we present the first systematic profiling and optimization study of a hybrid diffusion-AR language model. Our contributions are:
+
+\begin{enumerate}
+    \item \textbf{Profiling and roofline analysis} of STAR-LDM inference, revealing that micro-transformer operations achieve less than 1\% of the hardware roofline ceiling due to dispatch latency, and that the GPT-2 backbone accounts for 77\% of total runtime.
+
+    \item \textbf{A streamlined backbone forward pass} that eliminates 93\% of operator dispatches (6{,}185 $\to$ 432 per call) by bypassing framework abstractions, yielding a 3.6$\times$ per-call speedup on the dominant pipeline component.
+
+    \item \textbf{Cross-prefix-length scaling analysis} showing that KV-cache amortization with pre-allocated buffers provides increasing returns with context length, reaching 2.95$\times$ end-to-end speedup at 512-token prefixes.
+
+    \item \textbf{Custom Metal compute shaders} for fused RMSNorm+FiLM conditioning and register-resident 8-token attention, demonstrating 1.7--2.4$\times$ per-operation speedups on Apple Silicon's GPU.
+\end{enumerate}
+
+\section{Background}
+
+\subsection{STAR-LDM Architecture}
+
+STAR-LDM~\cite{lovelace2025star} consists of three components. A \textit{Soft Prompt Generator} (SPG, 6 transformer layers, dim 1024) maps a noised 768-dimensional sentence embedding to 8 soft-prompt vectors in the language model's 1280-dimensional space. These soft prompts are fed through \textit{GPT-2 Large} (36 layers, 770M parameters) alongside cached prefix representations. The output hidden states are then processed by a \textit{Score Network Head} (ScoreNetHead, 6 transformer layers) to produce a v-prediction~\cite{salimans2022progressive} in the embedding space. A DDPM update~\cite{ho2020denoising} yields the denoised embedding for the next step.
+
+Inference follows a Stop-Think-AutoRegress pipeline: (1) encode the prefix through GPT-2, (2) run $T=50$ diffusion steps, each invoking the full SPG $\to$ GPT-2 $\to$ ScoreNetHead pipeline, and (3) generate continuation tokens autoregressively from the final soft prompts. The authors note that their implementation is ``not optimized for inference speed'' and that reported wall-clock times are a ``loose upper bound''~\cite{lovelace2025star}.
+
+\subsection{Operator Dispatch Overhead}
+
+Modern deep learning frameworks decompose neural network computations into sequences of fine-grained operators (e.g., \texttt{aten::addmm}, \texttt{aten::layer\_norm}). Each operator dispatch incurs CPU-side overhead for argument validation, memory allocation, and GPU command encoding. For large workloads, this overhead is amortized over substantial GPU computation. However, when per-operator compute is small, dispatch overhead can dominate execution time. Lopes~\cite{lopes2023torchy} demonstrated up to 12$\times$ overhead from eager-mode dispatch on microbenchmarks, and Ghosh et al.~\cite{ghosh2025pygraph} showed that CPU-side kernel launch latency is an increasingly dominant bottleneck as GPU throughput grows. PyTorch 2~\cite{ansel2024pytorch2} introduced \texttt{torch.compile} with TorchDynamo and TorchInductor to address this via graph capture and kernel fusion, achieving a 2.27$\times$ geometric mean inference speedup on CUDA. CUDA Graphs~\cite{nvidia2020cudagraphs} provide an alternative by recording and replaying operator sequences. However, neither mechanism is fully effective on Apple's MPS backend, as we show in Section~\ref{sec:negative}.
+
+\subsection{Related Work}
+
+\textbf{Hybrid diffusion-AR models.} PLANNER~\cite{zhang2023planner} combines latent paragraph-level diffusion with AR decoding. Lovelace et al.~\cite{lovelace2023latent} introduced latent diffusion for language generation, the direct predecessor to STAR-LDM. Zhou et al.~\cite{zhou2024transfusion} train a single transformer with both next-token and diffusion losses for multimodal generation. Ye et al.~\cite{ye2024dot} apply diffusion to chain-of-thought reasoning. None of these works address inference optimization.
+
+\textbf{KV-cache management.} PagedAttention~\cite{kwon2023vllm} manages KV-cache memory via virtual memory paging for multi-request serving. Orca~\cite{yu2022orca} introduces iteration-level scheduling for AR generation. Most relevant to our work, Chen et al.~\cite{chen2025elastic} study KV-cache reuse across diffusion steps in masked diffusion LLMs, finding that KV states change minimally across steps. Our KV-cache amortization applies the same principle to continuous latent diffusion with an AR backbone.
+
+\textbf{Kernel fusion.} FlashAttention~\cite{dao2022flashattention,dao2024flashattention2} fuses attention into a single IO-aware kernel for long sequences. DeepSpeed Inference~\cite{aminabadi2022deepspeed} introduces deep fusion for transformer operations and identifies kernel launch overhead as the bottleneck at small batch sizes. Liger-Kernel~\cite{hsu2024liger} provides fused Triton kernels for RMSNorm and SwiGLU. Our Metal kernels target the complementary regime of 8-token micro-workloads where dispatch overhead, not memory bandwidth, limits performance.
+
+\textbf{Apple Silicon ML.} Feng et al.~\cite{feng2025apple} profile Apple Silicon for ML training, identifying page faults, power throttling, and kernel launch time as system-level bottlenecks in the MPS backend. Our work provides the first inference-focused profiling of a production ML model on Apple Silicon with custom Metal compute shaders.
+
+\section{Profiling and Analysis}
+
+\subsection{Baseline Component Breakdown}
+
+We profile the unoptimized STAR-LDM pipeline on 50 diverse C4 validation prompts~\cite{raffel2020exploring} with prefix lengths ranging from 5 to 50 tokens, using 50 DDPM diffusion steps. All experiments run on an Apple M4 Max (40-core GPU, 128\,GB unified memory, 546\,GB/s bandwidth).
+
+\begin{table}[t]
+\caption{Per-generation runtime breakdown of the unoptimized STAR-LDM pipeline (50 steps, 50 C4 prompts). GPT-2 dominates at 77.2\%.}
+\label{tab:baseline}
+\begin{tabular}{lrrr}
+\toprule
+Component & Mean (ms) & \% & Calls \\
+\midrule
+GPT-2 forward (diffusion loop) & 884 & 38.7 & 50 \\
+GPT-2 generate (AR decode) & 879 & 38.5 & 1 \\
+SoftPromptGenerator & 208 & 9.1 & 51 \\
+ScoreNetHead & 211 & 9.2 & 50 \\
+DDPM step + schedule & 31 & 1.4 & 50 \\
+Other & 70 & 3.1 & -- \\
+\midrule
+\textbf{Total} & \textbf{2{,}282} & \textbf{100} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:baseline} shows that GPT-2 accounts for 77.2\% of total inference time. The GPT-2 backbone is invoked 50 times in the diffusion loop (processing the full prefix plus 8 soft-prompt tokens at each step) and once for final autoregressive generation. The micro-transformers (SPG and ScoreNetHead) account for 18.3\%, while the diffusion arithmetic (DDPM step, noise schedule, v-prediction conversion) accounts for only 2.1\%.
+
+\subsection{Dispatch Count Analysis}
+
+Using \texttt{torch.profiler}, we measure the number of ATen operator dispatches per diffusion step. A single call to the v-prediction function (SPG $\to$ GPT-2 $\to$ ScoreNetHead) issues \textbf{6{,}185 ATen operations}. The top consumers are:
+
+\begin{itemize}
+\item \texttt{scaled\_dot\_product\_attention}: 360 calls (36 layers $\times$ 10 internal ops)
+\item \texttt{where} / \texttt{arange} / \texttt{le}: 806 calls for attention mask construction
+\item \texttt{addmm}: 1{,}440 calls for linear projections
+\item \texttt{view} / \texttt{empty} / \texttt{copy\_}: 16{,}090 calls for tensor management
+\end{itemize}
+
+At an average dispatch cost of ${\sim}3.4\,\mu$s per operation, the 6{,}185 operations account for ${\sim}21$\,ms per v-prediction call, consistent with measured per-call latency. Of these, only ${\sim}432$ operations perform the core computation (36 layers $\times$ 12 operations: 2 layer norms, QKV projection, attention, output projection, and FFN). The remaining 93\% of dispatches are framework overhead: mask construction, tensor reshaping, cache management, and type checking.
+
+\subsection{Roofline Analysis}
+
+\begin{table}[t]
+\caption{Roofline analysis of STAR-LDM components on M4 Max. The micro-transformer operations achieve less than 1\% of the roofline ceiling, indicating dispatch-latency-bound execution.}
+\label{tab:roofline}
+\begin{tabular}{lrrrrr}
+\toprule
+Operation & $\mu$s & AI & GFLOP/s & Ceil. & Eff. \\
+\midrule
+RMSNorm+FiLM (JIT) & 27 & 0.74 & 2.1 & 402 & 0.5\% \\
+RMSNorm+FiLM (Metal) & 13 & 0.74 & 4.5 & 402 & 1.1\% \\
+Tiny Attention (JIT) & 95 & 2.28 & 3.2 & 1{,}245 & 0.3\% \\
+Tiny Attention (Metal) & 40 & 2.28 & 7.4 & 1{,}245 & 0.6\% \\
+GPT-2 decode-8 (KV) & 95{,}560 & 4.00 & 120 & 2{,}184 & 5.5\% \\
+SoftPromptGen (6L) & 2{,}775 & 4.04 & 440 & 2{,}206 & 19.9\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:roofline} presents a roofline analysis following the methodology of Yuan et al.~\cite{yuan2024llminference}. All operations fall below the ridge point (25.6 FLOP/byte), placing them in the memory-bound regime. However, the micro-transformer operations (RMSNorm+FiLM, tiny attention) achieve less than 1\% of the memory-bound ceiling. The standard roofline model~\cite{williams2009roofline} predicts these operations should sustain hundreds of GFLOP/s given their arithmetic intensity, yet they achieve single-digit GFLOP/s.
+
+We term this the \textit{dispatch-latency-bound} regime: the per-operation tensors are small enough (8--128\,KB) that the fixed cost of GPU kernel dispatch dominates both compute and memory access time. This regime is not captured by traditional roofline analysis and appears specifically in architectures that apply large models to small, fixed-size workloads repeatedly.
+
+\section{Optimizations}
+
+\subsection{KV-Cache Amortization}
+
+The most impactful structural optimization addresses the redundant prefix recomputation. In the unoptimized pipeline, GPT-2 re-processes all prefix tokens at every diffusion step. Since only the 8 soft-prompt tokens change between steps, we compute the prefix key-value projections once and reuse them:
+
+\begin{enumerate}
+    \item Run GPT-2 on the prefix tokens with \texttt{use\_cache=True} to obtain the KV cache.
+    \item Pre-allocate contiguous KV buffers of size $(\text{prefix\_len} + 8)$ for each of the 36 layers.
+    \item At each diffusion step, write only the 8 new soft-prompt KV entries into the pre-allocated slots.
+\end{enumerate}
+
+The pre-allocation step is critical: a naive implementation using \texttt{torch.cat} to concatenate prefix and new KV tensors allocates a new tensor at every layer of every step ($36 \times 50 = 1{,}800$ allocations per generation). For long prefixes, this causes severe memory fragmentation on the MPS backend, increasing latency by up to 10$\times$. Pre-allocated buffers eliminate all allocation from the diffusion loop.
+
+\subsection{Streamlined Backbone Forward Pass}
+
+We replace HuggingFace's \texttt{GPT2LMHeadModel.forward()} with a manual implementation that performs only the essential computation. The streamlined forward pass:
+
+\begin{itemize}
+    \item Eliminates attention mask construction (\texttt{where}, \texttt{arange}, \texttt{le} calls).
+    \item Removes cache management logic (\texttt{DynamicCache} updates).
+    \item Avoids tensor format conversions and view operations.
+    \item Uses \texttt{F.linear} with pre-transposed weights instead of Conv1D.
+\end{itemize}
+
+This reduces the per-call dispatch count from 6{,}185 to approximately 432 operations (36 layers $\times$ 12 essential ops), eliminating 93\% of framework overhead. The implementation is 40 lines of PyTorch that directly iterate over the GPT-2 blocks, performing layer normalization, attention, and feed-forward computation without intervening abstractions. Correctness is verified by comparing output hidden states against the original implementation (maximum absolute difference $< 10^{-5}$).
+
+\subsection{Metal Compute Shaders}
+
+For the micro-transformer operations (SPG and ScoreNetHead), we implement two custom Metal compute shaders:
+
+\textbf{Fused RMSNorm + FiLM conditioning.} The micro-transformers use adaptive normalization~\cite{perez2018film} where each layer's output is modulated by time-dependent scale and shift parameters. The unfused implementation requires three dispatches (normalize, project time embedding, apply affine transform). Our fused kernel performs all three in a single dispatch, with each threadgroup processing one token's 1024-dimensional vector.
+
+\textbf{Register-resident 8-token attention.} Standard SDPA implementations (including FlashAttention~\cite{dao2022flashattention,dao2024flashattention2}) use tiling and online softmax for memory efficiency on long sequences. For 8-token sequences, the entire $8 \times 8$ attention matrix fits in registers, and tiling is pure overhead. Our kernel loads all Q, K, V vectors ($8 \times 64$ each) into registers, computes the full attention matrix with direct softmax, and fuses QK-normalization into the same dispatch.
+
+Both kernels compile via \texttt{torch.utils.cpp\_extension} and are dispatched through the MPS command stream. We additionally implement kernels for the fused DDPM step and a decode-N attention pattern, but find that these do not improve over PyTorch's existing implementations due to dispatch overhead exceeding compute savings on the target tensor sizes (Section~\ref{sec:negative}).
+
+\section{Evaluation}
+
+\subsection{End-to-End Speedup}
+
+\begin{table}[t]
+\caption{End-to-end inference latency on 100 diverse evaluation prompts with prefix lengths from 5 to 200 tokens, at 20 diffusion steps. Mean $\pm$ std over all prompts.}
+\label{tab:e2e}
+\begin{tabular}{lrr}
+\toprule
+Configuration & Mean (ms) & Speedup \\
+\midrule
+Baseline (HuggingFace, no KV cache) & 1{,}590 $\pm$ 279 & 1.00$\times$ \\
++ KV-cache + streamlined forward & 1{,}379 $\pm$ 50 & 1.15$\times$ \\
+\quad + Fused Metal micro-transformer & 1{,}379 $\pm$ 50 & 1.15$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:e2e} shows end-to-end results on 100 evaluation prompts spanning four prefix-length buckets (5--15, 16--50, 51--100, 101--200 tokens). The combined optimizations yield a 1.15$\times$ overall speedup with 5.6$\times$ lower variance. The Metal kernels contribute minimally at the end-to-end level because the micro-transformers (targeted by the Metal kernels) account for only 18\% of total runtime, while the GPT-2 backbone (targeted by the streamlined forward) accounts for 77\%.
+
+\subsection{Prefix Length Scaling}
+
+\begin{table}[t]
+\caption{Latency vs.\ prefix length at 20 diffusion steps. The optimized pipeline maintains near-constant per-step cost as prefix length grows, while the baseline scales linearly.}
+\label{tab:prefix}
+\begin{tabular}{rrrrr}
+\toprule
+Prefix & Baseline (ms) & Optimized (ms) & Speedup & Base it/s \\
+\midrule
+16 & 921 & 748 & 1.23$\times$ & 47.5 \\
+64 & 1{,}072 & 765 & 1.40$\times$ & 35.0 \\
+128 & 1{,}321 & 801 & 1.65$\times$ & 24.4 \\
+256 & 1{,}835 & 853 & 2.15$\times$ & 15.0 \\
+512 & 2{,}894 & 982 & 2.95$\times$ & 8.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:prefix} reveals that the speedup scales with prefix length. The baseline pipeline re-processes all prefix tokens at every diffusion step, giving $O(\text{prefix\_len})$ per-step cost. The optimized pipeline processes only the 8 soft-prompt tokens per step, giving approximately $O(1)$ per-step cost (with a small linear term from the attention against the cached prefix KV). At 512 tokens, the baseline diffusion loop runs at 8.4 steps/second while the optimized loop runs at 41.5 steps/second, a 4.9$\times$ improvement on the diffusion loop alone.
+
+\subsection{Metal Kernel Microbenchmarks}
+
+\begin{table}[t]
+\caption{Metal kernel microbenchmarks using STAR-LDM's actual tensor dimensions.}
+\label{tab:kernels}
+\begin{tabular}{lrrrr}
+\toprule
+Kernel & JIT (ms) & Metal (ms) & Speedup & Calls/gen \\
+\midrule
+RMSNorm+FiLM & 0.027 & 0.016 & 1.69$\times$ & 1{,}200 \\
+Tiny Attention & 0.099 & 0.042 & 2.39$\times$ & 600 \\
+DDPM Step & 0.040 & 0.115 & 0.35$\times$ & 49 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:kernels} shows per-operation speedups for the Metal compute shaders. The fused RMSNorm+FiLM and tiny attention kernels achieve 1.69$\times$ and 2.39$\times$ speedups respectively, contributing an estimated 47\,ms of savings per generation (1{,}200 and 600 invocations). The DDPM step kernel is 0.35$\times$ slower than the JIT-scripted fallback because the 768-dimensional tensor (9\,KB working set) fits in L1 cache, making the dispatch overhead of a custom Metal kernel larger than the compute it performs. This kernel is disabled in the production pipeline.
+
+\subsection{Negative Results}
+\label{sec:negative}
+
+Several optimization strategies yielded negative or neutral results:
+
+\textbf{Picard iteration for parallel diffusion.} Following ParaDiGMS~\cite{shih2023paradigms}, we implemented fixed-point iteration to parallelize diffusion steps. At 20 iterations the embedding cosine similarity to the sequential reference reached only 0.78, far from convergence. The denoising function in STAR-LDM (which includes GPT-2 Large) has substantially higher Lipschitz constant than the U-Net denoisers for which Picard iteration was designed, making convergence impractical.
+
+\textbf{torch.compile on MPS.} Both the \texttt{inductor} and \texttt{aot\_eager} backends produced 2--3$\times$ slowdowns on the GPT-2 forward pass. The MPS backend does not benefit from the graph-level optimizations (kernel fusion, memory planning) that make \texttt{torch.compile} effective on CUDA.
+
+\textbf{Fused FFN kernel.} A Metal kernel fusing LayerNorm + linear + GELU + linear into a single dispatch produced correct results but ran 127$\times$ slower than PyTorch's separate operator calls. The reason is that the linear projections ($8 \times 1280 \to 8 \times 5120$) dispatch to Apple's optimized BLAS, which a naive kernel loop cannot match. Fusion only helps when dispatch overhead is comparable to compute time; for GEMM operations, it is not.
+
+\textbf{Decode-N attention kernel.} A custom streaming online-softmax attention kernel for the ``few queries, moderate KV'' pattern achieved 1.97$\times$ speedup over SDPA at KV length 13, but was slower at lengths above 40. The crossover occurs because Apple's SDPA uses tiled matrix multiplication that amortizes better as KV length grows. End-to-end integration showed zero net improvement due to Python wrapper overhead consuming the per-call savings.
+
+\section{Discussion}
+
+\subsection{Framework Overhead as the Dominant Bottleneck}
+
+The central finding of this work is that the primary bottleneck in STAR-LDM inference is not GPU compute efficiency but software framework overhead. The HuggingFace implementation of GPT-2, designed for generality and ease of use, issues 14$\times$ more operator dispatches than the core computation requires. Each dispatch involves Python function calls, argument validation, tensor metadata management, and MPS command encoding. For the small per-step workload of hybrid diffusion-AR models (8 tokens through 36 transformer layers), this overhead is comparable to or larger than the GPU execution time.
+
+This finding has implications beyond STAR-LDM. Any architecture that repeatedly applies a large pretrained model to small, fixed-size inputs will encounter the same bottleneck. Examples include prefix tuning~\cite{li2021prefix}, prompt tuning~\cite{lester2021power}, adapter-based methods, and other diffusion-AR hybrids~\cite{zhang2023planner}. For these architectures, the most effective optimization is not writing faster GPU kernels but reducing the number of framework-level dispatches.
+
+\subsection{When Metal Kernels Help (and When They Do Not)}
+
+Our results delineate a clear boundary for custom GPU kernel utility on Apple Silicon:
+
+\begin{itemize}
+    \item \textbf{Non-GEMM operations with high dispatch overhead}: RMSNorm, FiLM conditioning, small-tensor attention. These benefit from fusion because the dispatch cost is a significant fraction of total cost. Speedups: 1.7--2.4$\times$.
+    \item \textbf{GEMM-dominated operations}: Linear projections, FFN layers. Apple's BLAS (via MPS) is already near-optimal for these shapes. Custom kernels cannot compete. Speedup: $< 1\times$.
+    \item \textbf{Very small tensors} ($< 10$\,KB): Even a single Metal dispatch is slower than JIT-compiled elementwise operations that execute within the MPS runtime. Speedup: 0.1--0.35$\times$.
+\end{itemize}
+
+\subsection{Limitations and Future Work}
+
+Our study is limited to a single hardware platform (Apple M4 Max) and a single model (STAR-LDM with GPT-2 Large backbone). The framework overhead analysis applies specifically to HuggingFace Transformers on PyTorch MPS; CUDA-based inference with CUDA Graphs or TensorRT would exhibit different bottleneck characteristics. A cross-platform comparison remains important future work.
+
+The most promising direction for further speedup is \textit{consistency distillation}~\cite{song2023consistency,luo2023latent} to reduce the number of diffusion steps from 50 to 4--8. STAR-LDM's 768-dimensional embedding space is substantially smoother than the pixel spaces for which consistency models were originally designed, suggesting that few-step distillation could be particularly effective.
+
+\section{Conclusion}
+
+We presented a systematic optimization study of STAR-LDM, a hybrid diffusion-autoregressive language model. Through profiling, roofline analysis, and iterative optimization, we achieved up to 2.95$\times$ end-to-end speedup on long-context inputs. The dominant optimization was not a GPU kernel but a rewrite of the backbone forward pass that eliminated 93\% of framework overhead. Custom Metal kernels contributed 1.7--2.4$\times$ per-operation speedups on micro-transformer components but had limited end-to-end impact due to Amdahl's law. Negative results on Picard iteration, torch.compile, and GEMM fusion establish practical boundaries for optimization in this regime. Our findings suggest that for high-iteration, small-workload inference pipelines, the software stack itself is the primary optimization target.
+
+\bibliographystyle{ACM-Reference-Format}
+\begin{thebibliography}{20}
+
+\bibitem{lovelace2025star}
+J.~Lovelace, C.~Belardi, S.~Zalouk, A.~Polavaram, S.~Kundurthy, and K.~Q.~Weinberger.
+\newblock {STAR-LDM}: Continuous sentence generation via latent diffusion with stop, think, and auto-regress.
+\newblock In \emph{COLM}, 2025.
+
+\bibitem{dao2022flashattention}
+T.~Dao, D.~Y.~Fu, S.~Ermon, A.~Rudra, and C.~R\'{e}.
+\newblock {FlashAttention}: Fast and memory-efficient exact attention with {IO}-awareness.
+\newblock In \emph{NeurIPS}, 2022.
+
+\bibitem{dao2024flashattention2}
+T.~Dao.
+\newblock {FlashAttention-2}: Faster attention with better parallelism and work partitioning.
+\newblock In \emph{ICLR}, 2024.
+
+\bibitem{aminabadi2022deepspeed}
+R.~Y.~Aminabadi, S.~Rajbhandari, M.~Zhang, A.~A.~Awan, C.~Li, D.~Li, E.~Zheng, J.~Rasley, S.~Smith, O.~Ruwase, and Y.~He.
+\newblock {DeepSpeed Inference}: Enabling efficient inference of transformer models at unprecedented scale.
+\newblock In \emph{SC}, 2022.
+
+\bibitem{yuan2024llminference}
+Z.~Yuan, Y.~Shang, Y.~Zhou, Z.~Dong, Z.~Zhou, C.~Xue, B.~Wu, Z.~Li, Q.~Gu, Y.~J.~Lee, Y.~Yan, B.~Chen, G.~Sun, and K.~Keutzer.
+\newblock {LLM} inference unveiled: Survey and roofline model insights.
+\newblock \emph{arXiv:2402.16363}, 2024.
+
+\bibitem{williams2009roofline}
+S.~Williams, A.~Waterman, and D.~Patterson.
+\newblock Roofline: An insightful visual performance model for multicore architectures.
+\newblock \emph{Communications of the ACM}, 52(4):65--76, 2009.
+
+\bibitem{ho2020denoising}
+J.~Ho, A.~Jain, and P.~Abbeel.
+\newblock Denoising diffusion probabilistic models.
+\newblock In \emph{NeurIPS}, 2020.
+
+\bibitem{salimans2022progressive}
+T.~Salimans and J.~Ho.
+\newblock Progressive distillation for fast sampling of diffusion models.
+\newblock In \emph{ICLR}, 2022.
+
+\bibitem{song2023consistency}
+Y.~Song, P.~Dhariwal, M.~Chen, and I.~Sutskever.
+\newblock Consistency models.
+\newblock In \emph{ICML}, 2023.
+
+\bibitem{luo2023latent}
+S.~Luo, Y.~Tan, L.~Huang, J.~Li, and H.~Zhao.
+\newblock Latent consistency models: Synthesizing high-resolution images with few-step inference.
+\newblock In \emph{ICLR}, 2024.
+
+\bibitem{perez2018film}
+E.~Perez, F.~Strub, H.~de~Vries, V.~Dumoulin, and A.~Courville.
+\newblock {FiLM}: Visual reasoning with a general conditioning layer.
+\newblock In \emph{AAAI}, 2018.
+
+\bibitem{pillutla2021mauve}
+K.~Pillutla, S.~Swayamdipta, R.~Zellers, J.~Thickstun, S.~Welleck, Y.~Choi, and Z.~Harchaoui.
+\newblock {MAUVE}: Measuring the gap between neural text and human text using divergence frontiers.
+\newblock In \emph{NeurIPS}, 2021.
+
+\bibitem{nvidia2020cudagraphs}
+{NVIDIA}.
+\newblock {CUDA} graphs.
+\newblock \emph{CUDA Toolkit Documentation}, 2020.
+
+\bibitem{shih2023paradigms}
+A.~Shih, S.~Belkhale, S.~Ermon, D.~Sadigh, and N.~Anari.
+\newblock Parallel sampling of diffusion models.
+\newblock In \emph{NeurIPS}, 2023.
+
+\bibitem{raffel2020exploring}
+C.~Raffel, N.~Shazeer, A.~Roberts, K.~Lee, S.~Narang, M.~Matena, Y.~Zhou, W.~Li, and P.~J.~Liu.
+\newblock Exploring the limits of transfer learning with a unified text-to-text transformer.
+\newblock \emph{JMLR}, 21(140):1--67, 2020.
+
+\bibitem{zhang2023planner}
+Y.~Zhang, J.~Gu, Z.~Wu, S.~Zhai, J.~Susskind, and N.~Jaitly.
+\newblock {PLANNER}: Generating diversified paragraph via latent language diffusion model.
+\newblock In \emph{NeurIPS}, 2023.
+
+\bibitem{li2021prefix}
+X.~L.~Li and P.~Liang.
+\newblock Prefix-tuning: Optimizing continuous prompts for generation.
+\newblock In \emph{ACL}, 2021.
+
+\bibitem{lester2021power}
+B.~Lester, R.~Al-Rfou, and N.~Constant.
+\newblock The power of scale for parameter-efficient prompt tuning.
+\newblock In \emph{EMNLP}, 2021.
+
+\bibitem{hsu2024liger}
+P.-L.~Hsu, Y.~Dai, V.~Kothapalli, Q.~Song, S.~Tang, and S.~Zhu.
+\newblock Liger-Kernel: Efficient Triton kernels for {LLM} training.
+\newblock \emph{arXiv:2410.10989}, 2024.
+
+\bibitem{kwon2023vllm}
+W.~Kwon, Z.~Li, S.~Zhuang, Y.~Sheng, L.~Zheng, C.~H.~Yu, J.~Gonzalez, H.~Zhang, and I.~Stoica.
+\newblock Efficient memory management for large language model serving with {PagedAttention}.
+\newblock In \emph{SOSP}, 2023.
+
+\bibitem{ansel2024pytorch2}
+J.~Ansel, E.~Yang, H.~He, N.~Gimelshein, A.~Jain, M.~Voznesensky, et~al.
+\newblock {PyTorch 2}: Faster machine learning through dynamic {Python} bytecode transformation and graph compilation.
+\newblock In \emph{ASPLOS}, 2024.
+
+\bibitem{lopes2023torchy}
+N.~P.~Lopes.
+\newblock Torchy: A tracing {JIT} compiler for {PyTorch}.
+\newblock In \emph{CC (ACM SIGPLAN)}, 2023.
+
+\bibitem{ghosh2025pygraph}
+A.~Ghosh, A.~Nayak, A.~Panwar, and A.~Basu.
+\newblock {PyGraph}: Robust compiler support for {CUDA} graphs in {PyTorch}.
+\newblock \emph{arXiv:2503.19779}, 2025.
+
+\bibitem{lovelace2023latent}
+J.~Lovelace, V.~Kishore, C.~Wan, E.~Shekhtman, and K.~Q.~Weinberger.
+\newblock Latent diffusion for language generation.
+\newblock In \emph{NeurIPS}, 2023.
+
+\bibitem{zhou2024transfusion}
+C.~Zhou, L.~Yu, A.~Babu, K.~Tirumala, M.~Yasunaga, L.~Shamis, J.~Kahn, X.~Ma, L.~Zettlemoyer, and O.~Levy.
+\newblock Transfusion: Predict the next token and diffuse images with one multi-modal model.
+\newblock \emph{arXiv:2408.11039}, 2024.
+
+\bibitem{ye2024dot}
+J.~Ye, S.~Gong, L.~Chen, L.~Zheng, J.~Gao, H.~Shi, C.~Wu, X.~Jiang, Z.~Li, W.~Bi, and L.~Kong.
+\newblock Diffusion of thoughts: Chain-of-thought reasoning in diffusion language models.
+\newblock In \emph{NeurIPS}, 2024.
+
+\bibitem{yu2022orca}
+G.-I.~Yu, J.~S.~Jeong, G.-W.~Kim, S.~Kim, and B.-G.~Chun.
+\newblock Orca: A distributed serving system for transformer-based generative models.
+\newblock In \emph{OSDI}, 2022.
+
+\bibitem{chen2025elastic}
+et~al.
+\newblock Attention is all you need for {KV} cache in diffusion {LLMs}.
+\newblock \emph{arXiv:2510.14973}, 2025.
+
+\bibitem{feng2025apple}
+D.~Feng, Z.~Xu, R.~Wang, and F.~X.~Lin.
+\newblock Profiling {Apple Silicon} performance for {ML} training.
+\newblock \emph{arXiv:2501.14925}, 2025.
+
+\end{thebibliography}
+
+\end{document}
