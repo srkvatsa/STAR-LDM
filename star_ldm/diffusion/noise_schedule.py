@@ -16,17 +16,15 @@ def cosine_schedule(t, start = 0, end = 1, tau = 1, clip_min = 1e-9):
     return output.clamp(min = clip_min)
 
 # converting gamma to alpha, sigma or logsnr
-@torch.amp.autocast('cuda',enabled=False)
 def log_snr_to_alpha2(log_snr):
-    alpha2 = torch.sigmoid(log_snr)
+    alpha2 = torch.sigmoid(log_snr.float())
     return alpha2
 
 # Log-SNR shifting (https://arxiv.org/abs/2301.10972)
-@torch.amp.autocast('cuda',enabled=False)
 def alpha2_to_shifted_log_snr(alpha2, scale = 1):
+    alpha2 = alpha2.float()
     return (log(alpha2) - log(1 - alpha2)).clamp(min=-20, max=20) + 2*np.log(scale).item()
 
-@torch.amp.autocast('cuda',enabled=False)
 def time_to_alpha2(t, alpha2_schedule, scale):
     alpha2 = alpha2_schedule(t)
     shifted_log_snr = alpha2_to_shifted_log_snr(alpha2, scale = scale)

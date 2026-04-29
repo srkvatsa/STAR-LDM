@@ -84,14 +84,14 @@ class NoiseConditionedMLP(nn.Module):
         dataset_name = 'fineweb_100b'
         if global_norm:
             self.register_buffer('data_mean', torch.load(
-                os.path.join(DATA_STATS_PATH[dataset_name], 'global_mean.pt'), weights_only=True))
+                os.path.join(DATA_STATS_PATH[dataset_name], 'global_mean.pt'), weights_only=True, map_location='cpu'))
             self.register_buffer('data_std', torch.load(
-                os.path.join(DATA_STATS_PATH[dataset_name], 'global_std.pt'), weights_only=True))
+                os.path.join(DATA_STATS_PATH[dataset_name], 'global_std.pt'), weights_only=True, map_location='cpu'))
         else:
             self.register_buffer('data_mean', torch.load(
-                os.path.join(DATA_STATS_PATH[dataset_name], 'mean.pt'), weights_only=True))
+                os.path.join(DATA_STATS_PATH[dataset_name], 'mean.pt'), weights_only=True, map_location='cpu'))
             self.register_buffer('data_std', torch.load(
-                os.path.join(DATA_STATS_PATH[dataset_name], 'std.pt'), weights_only=True))
+                os.path.join(DATA_STATS_PATH[dataset_name], 'std.pt'), weights_only=True, map_location='cpu'))
 
         self.loss_fn = nn.BCEWithLogitsLoss(reduction='none')
 
@@ -145,7 +145,12 @@ def load_classifier(checkpoint_path, device='cuda'):
     Returns:
         A :class:`NoiseConditionedMLP` in eval mode on the specified device.
     """
-    device = torch.device(device if torch.cuda.is_available() else 'cpu')
+    if device == 'cuda' and not torch.cuda.is_available():
+        if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+            device = 'mps'
+        else:
+            device = 'cpu'
+    device = torch.device(device)
 
     if os.path.isdir(checkpoint_path):
         config_path = os.path.join(checkpoint_path, 'config.yaml')
