@@ -28,9 +28,79 @@ This is a solo project (approved by the instructor). I am building on my own res
 
 I'm a co-author on STAR-LDM (COLM 2025), a language model that uses 50 steps of latent diffusion to plan what to say before generating text autoregressively with GPT-2 Large. It produces much better text (MAUVE 94.6 vs 85.2 for GPT-2 Large) but is slow because each diffusion step runs the full 770M-parameter GPT-2 backbone. My CS 5220 (parallel computing) project optimizes this inference pipeline using profiling, roofline analysis, custom Metal GPU kernels for Apple Silicon, and structural code changes.
 
-## The story
+## IMPORTANT: The intro/background section of the poster should make STAR-LDM crystal clear
 
-Language models like GPT generate text one word at a time with no ability to plan ahead. STAR-LDM adds a "thinking" phase: 50 rounds of diffusion refinement in a continuous 768-dimensional sentence embedding space before committing to tokens. This produces dramatically better text but is slow.
+The poster audience is CS graduate students who understand transformers and GPT but have never heard of STAR-LDM or diffusion-based language models. The background section needs to answer:
+
+1. What is wrong with standard autoregressive generation?
+2. What does STAR-LDM do differently?
+3. Why does this produce better text?
+4. Why is it slow?
+
+### The problem with standard autoregressive models
+
+Standard language models like GPT-2 generate text left-to-right, one token at a time. Each token is committed immediately with no ability to revise, reconsider, or plan ahead. The model has no concept of where the sentence is going. It is like writing an essay one word at a time without ever thinking about the paragraph structure first.
+
+This leads to problems with coherence, especially over longer passages. The model might start a sentence in one direction and end up somewhere inconsistent because it never planned the whole thought.
+
+### What STAR-LDM does differently: "Think before you speak"
+
+STAR-LDM adds a planning phase before generation. The key idea: before committing to any tokens, the model first figures out the semantic meaning of what it wants to say by iteratively refining a continuous "thought vector" (a 768-dimensional embedding in the space of Sentence-T5, a sentence-level encoder).
+
+This planning uses diffusion, the same technique behind image generators like DALL-E and Stable Diffusion, but applied to sentence-level meaning rather than pixels.
+
+### A concrete example of how decoding works
+
+Suppose the input prefix is: "The discovery of penicillin"
+
+**Step 1 — Stop:** The model encodes this prefix through GPT-2 Large, caching the internal key-value representations for later reuse.
+
+**Step 2 — Think (50 rounds of planning):**
+- Start with pure random noise z_50 in 768 dimensions (no meaning yet)
+- Round 50: The noisy vector is reshaped into 8 "soft prompt" tokens and fed through GPT-2 alongside the prefix. The model's prediction is used to slightly denoise the vector. z_50 → z_49. The vector now has a hint of meaning.
+- Round 49: Same process. z_49 → z_48. The meaning becomes slightly clearer.
+- ... (48 more rounds) ...
+- Round 1: z_1 → z_0. The vector now represents a clear semantic plan, like "describe how Fleming's accidental observation led to the development of antibiotics and revolutionized medicine."
+
+The crucial point: at each of these 50 rounds, the FULL GPT-2 Large model (36 layers, 770M parameters) is invoked on the 8 soft-prompt tokens. This is what makes it slow.
+
+**Step 3 — AutoRegress:** The final plan z_0 is converted into 8 soft-prompt tokens one last time, prepended to the prefix, and GPT-2 generates the actual text token by token: "...revolutionized modern medicine. Alexander Fleming's serendipitous observation of mold inhibiting bacterial growth in 1928..."
+
+The text is more coherent and purposeful than what GPT-2 would produce without planning because the model knew where the sentence was heading before it started writing.
+
+### Why it produces better text (the quality gap)
+
+| Model | Parameters | MAUVE Score |
+|---|---|---|
+| GPT-2 Large | 770M | 85.2 |
+| GPT-2 XL | 1.5B | 86.6 |
+| Pythia 1.4B | 1.4B | 84.8 |
+| **STAR-LDM** | **956M** | **94.6** |
+
+MAUVE measures how similar the distribution of generated text is to the distribution of human-written text. Higher is better, 100 is perfect. STAR-LDM at 956M parameters outperforms GPT-2 XL at 1.5B parameters by 8 points. In blind LLM-as-judge evaluations, STAR-LDM wins 60-70% of head-to-head comparisons against GPT-2 XL on coherence and reasoning.
+
+### Why it is slow (the cost of planning)
+
+Each of the 50 diffusion rounds requires a full forward pass through GPT-2 Large (36 transformer layers, 770M parameters) on the 8 soft-prompt tokens, plus two small 6-layer "micro-transformers" (the Soft Prompt Generator and Score Network Head). Then the final autoregressive generation step runs GPT-2 one more time for token-by-token output.
+
+Total: 50 GPT-2 forwards for planning + 1 GPT-2 forward for generation = 51 invocations of a 770M-parameter model. Without any optimization, this takes about 2.3 seconds on an M4 Max, compared to about 1 second for GPT-2 Large alone. The model is 2.3x slower for text that is substantially better.
+
+The question this project answers: can we close this speed gap through systems optimization?
+
+### The hardware: Apple M4 Max and Metal
+
+All experiments run on an Apple M4 Max with 128GB of unified memory and a 40-core GPU. Unlike NVIDIA GPUs which have separate CPU and GPU memory connected by PCIe, Apple Silicon uses a unified memory architecture where the CPU and GPU share the same physical memory pool with 546 GB/s bandwidth. This eliminates memory transfer costs but introduces different bottleneck characteristics.
+
+Apple's GPU programming framework is Metal Shading Language (analogous to CUDA). PyTorch supports Apple GPUs through the MPS (Metal Performance Shaders) backend. Custom GPU kernels must be written in Metal and dispatched through Objective-C++ glue code using PyTorch's MPS stream API. Unlike CUDA, there is no Triton or CUTLASS equivalent for Metal, so all kernel development is manual.
+
+Key hardware specs:
+- GPU: 40 cores, ~14 TFLOPS FP32 peak compute
+- Memory: 128 GB unified (shared between CPU and GPU)
+- Memory bandwidth: 546 GB/s
+- No PCIe bottleneck (unified memory)
+- Kernel development: Metal Shading Language + Objective-C++ dispatch
+
+## The story (high-level narrative for the poster)
 
 We profiled the pipeline and found GPT-2 accounts for 77% of runtime. Digging deeper, we discovered the bottleneck wasn't GPU compute but software framework overhead: HuggingFace issues 6,185 operator dispatches per diffusion step, of which only 432 (7%) do actual math. 93% is bookkeeping: mask construction, cache management, tensor reshaping.
 
