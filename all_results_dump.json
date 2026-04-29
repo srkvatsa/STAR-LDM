@@ -1,0 +1,1747 @@
+{
+  "canonical_prefix_scaling": {
+    "runs_per_config": 5,
+    "step_counts": [
+      20,
+      50
+    ],
+    "prefix_lengths": [
+      16,
+      64,
+      128,
+      256,
+      512
+    ],
+    "device": "mps",
+    "results": {
+      "steps=20_pfx=16": {
+        "steps": 20,
+        "prefix_len": 16,
+        "baseline": {
+          "mean": 857.8561333473772,
+          "std": 4.259605581804198,
+          "ci95": 3.7337089141946778,
+          "median": 856.2112499494106,
+          "min": 852.5421670638025,
+          "max": 865.2211248409003,
+          "times": [
+            865.2211248409003,
+            859.3040839768946,
+            852.5421670638025,
+            856.002040905878,
+            856.2112499494106
+          ]
+        },
+        "optimized": {
+          "mean": 722.2790585830808,
+          "std": 10.632828696793965,
+          "ci95": 9.320085281583587,
+          "median": 715.1743751019239,
+          "min": 712.877499870956,
+          "max": 738.900083815679,
+          "times": [
+            738.900083815679,
+            730.8863750658929,
+            712.877499870956,
+            713.5569590609521,
+            715.1743751019239
+          ]
+        },
+        "speedup": 1.1877073316098385
+      },
+      "steps=20_pfx=64": {
+        "steps": 20,
+        "prefix_len": 64,
+        "baseline": {
+          "mean": 1053.256708336994,
+          "std": 6.405371156954317,
+          "ci95": 5.614555368602,
+          "median": 1054.3873328715563,
+          "min": 1043.716083979234,
+          "max": 1060.786415822804,
+          "times": [
+            1060.786415822804,
+            1043.716083979234,
+            1048.4167919494212,
+            1054.3873328715563,
+            1058.9769170619547
+          ]
+        },
+        "optimized": {
+          "mean": 747.6607087999582,
+          "std": 2.363664349343418,
+          "ci95": 2.0718431511608797,
+          "median": 748.7699592020363,
+          "min": 743.1692089885473,
+          "max": 749.898707959801,
+          "times": [
+            743.1692089885473,
+            749.898707959801,
+            748.7699592020363,
+            748.891333816573,
+            747.5743340328336
+          ]
+        },
+        "speedup": 1.408736203387679
+      },
+      "steps=20_pfx=128": {
+        "steps": 20,
+        "prefix_len": 128,
+        "baseline": {
+          "mean": 1295.9065502043813,
+          "std": 3.617386000656883,
+          "ci95": 3.1707786313433566,
+          "median": 1296.4900000952184,
+          "min": 1290.4964168556035,
+          "max": 1301.5686250291765,
+          "times": [
+            1301.5686250291765,
+            1296.4900000952184,
+            1290.4964168556035,
+            1296.79449996911,
+            1294.1832090727985
+          ]
+        },
+        "optimized": {
+          "mean": 776.9374749623239,
+          "std": 6.585445754008229,
+          "ci95": 5.7723977122951045,
+          "median": 781.179083045572,
+          "min": 767.9704169277102,
+          "max": 783.3517079707235,
+          "times": [
+            767.9704169277102,
+            782.2523338254541,
+            781.179083045572,
+            769.9338330421597,
+            783.3517079707235
+          ]
+        },
+        "speedup": 1.6679676189737453
+      },
+      "steps=20_pfx=256": {
+        "steps": 20,
+        "prefix_len": 256,
+        "baseline": {
+          "mean": 1800.837033148855,
+          "std": 10.039255786943553,
+          "ci95": 8.79979568618066,
+          "median": 1801.6697498969734,
+          "min": 1784.2157499399036,
+          "max": 1815.5890828929842,
+          "times": [
+            1799.2561659775674,
+            1801.6697498969734,
+            1815.5890828929842,
+            1784.2157499399036,
+            1803.4544170368463
+          ]
+        },
+        "optimized": {
+          "mean": 835.9802917577326,
+          "std": 6.062609953315295,
+          "ci95": 5.314111926858492,
+          "median": 838.8317918870598,
+          "min": 824.1468749474734,
+          "max": 840.4025000054389,
+          "times": [
+            840.4025000054389,
+            824.1468749474734,
+            839.9429998826236,
+            836.5772920660675,
+            838.8317918870598
+          ]
+        },
+        "speedup": 2.1541620668621433
+      },
+      "steps=20_pfx=512": {
+        "steps": 20,
+        "prefix_len": 512,
+        "baseline": {
+          "mean": 3001.069400459528,
+          "std": 22.55846083976676,
+          "ci95": 19.7733627469503,
+          "median": 3014.4830418284982,
+          "min": 2959.840000141412,
+          "max": 3021.1945839691907,
+          "times": [
+            2959.840000141412,
+            2994.1900421399623,
+            3014.4830418284982,
+            3015.6393342185766,
+            3021.1945839691907
+          ]
+        },
+        "optimized": {
+          "mean": 972.7678162977099,
+          "std": 4.309565987349889,
+          "ci95": 3.777501140484257,
+          "median": 973.284374922514,
+          "min": 966.7334579862654,
+          "max": 978.6872498225421,
+          "times": [
+            966.7334579862654,
+            973.284374922514,
+            978.6872498225421,
+            975.8120828773826,
+            969.3219158798456
+          ]
+        },
+        "speedup": 3.0850829459812927
+      },
+      "steps=50_pfx=16": {
+        "steps": 50,
+        "prefix_len": 16,
+        "baseline": {
+          "mean": 1536.081025004387,
+          "std": 4.494954877921942,
+          "ci95": 3.940001667828471,
+          "median": 1534.4514579046518,
+          "min": 1532.4564999900758,
+          "max": 1544.6144579909742,
+          "times": [
+            1536.3167091272771,
+            1544.6144579909742,
+            1532.5660000089556,
+            1532.4564999900758,
+            1534.4514579046518
+          ]
+        },
+        "optimized": {
+          "mean": 1153.6251665558666,
+          "std": 6.596405011881511,
+          "ci95": 5.782003925365447,
+          "median": 1148.9090418908745,
+          "min": 1148.174624890089,
+          "max": 1164.8124158382416,
+          "times": [
+            1157.583500025794,
+            1164.8124158382416,
+            1148.174624890089,
+            1148.9090418908745,
+            1148.646250134334
+          ]
+        },
+        "speedup": 1.3315252384709475
+      },
+      "steps=50_pfx=64": {
+        "steps": 50,
+        "prefix_len": 64,
+        "baseline": {
+          "mean": 1987.1490164194256,
+          "std": 8.087986986833485,
+          "ci95": 7.0894331718478,
+          "median": 1984.9573329556733,
+          "min": 1977.0473327953368,
+          "max": 2001.0379161685705,
+          "times": [
+            1977.0473327953368,
+            1982.7418331988156,
+            1984.9573329556733,
+            1989.9606669787318,
+            2001.0379161685705
+          ]
+        },
+        "optimized": {
+          "mean": 1172.2415164578706,
+          "std": 5.06881130366696,
+          "ci95": 4.443009002926511,
+          "median": 1171.6374999377877,
+          "min": 1165.38070817478,
+          "max": 1178.394166054204,
+          "times": [
+            1168.2980000041425,
+            1171.6374999377877,
+            1178.394166054204,
+            1177.4972081184387,
+            1165.38070817478
+          ]
+        },
+        "speedup": 1.6951703113398835
+      },
+      "steps=50_pfx=128": {
+        "steps": 50,
+        "prefix_len": 128,
+        "baseline": {
+          "mean": 2556.8699329625815,
+          "std": 11.951660224428617,
+          "ci95": 10.476092084674688,
+          "median": 2560.301249846816,
+          "min": 2534.5364580862224,
+          "max": 2569.4752908311784,
+          "times": [
+            2534.5364580862224,
+            2556.487541180104,
+            2563.5491248685867,
+            2560.301249846816,
+            2569.4752908311784
+          ]
+        },
+        "optimized": {
+          "mean": 1196.9284165184945,
+          "std": 7.406405193980096,
+          "ci95": 6.492000389197629,
+          "median": 1196.8230828642845,
+          "min": 1187.187165953219,
+          "max": 1205.2598339505494,
+          "times": [
+            1190.3099999763072,
+            1187.187165953219,
+            1196.8230828642845,
+            1205.2598339505494,
+            1205.0619998481125
+          ]
+        },
+        "speedup": 2.136192856377952
+      },
+      "steps=50_pfx=256": {
+        "steps": 50,
+        "prefix_len": 256,
+        "baseline": {
+          "mean": 4099.273191764951,
+          "std": 83.70755625327284,
+          "ci95": 73.37290811698061,
+          "median": 4051.035374868661,
+          "min": 4025.522958021611,
+          "max": 4251.411583973095,
+          "times": [
+            4025.522958021611,
+            4051.035374868661,
+            4041.3717499468476,
+            4251.411583973095,
+            4127.024292014539
+          ]
+        },
+        "optimized": {
+          "mean": 1355.985599802807,
+          "std": 22.256600196012194,
+          "ci95": 19.508770226636816,
+          "median": 1366.0666251089424,
+          "min": 1318.877249956131,
+          "max": 1379.4682079460472,
+          "times": [
+            1318.877249956131,
+            1342.9186660796404,
+            1366.0666251089424,
+            1372.597249923274,
+            1379.4682079460472
+          ]
+        },
+        "speedup": 3.0230949298879604
+      },
+      "steps=50_pfx=512": {
+        "steps": 50,
+        "prefix_len": 512,
+        "baseline": {
+          "mean": 7506.8496918305755,
+          "std": 152.7723820867439,
+          "ci95": 133.91089712076797,
+          "median": 7420.861750142649,
+          "min": 7374.333624960855,
+          "max": 7767.259208019823,
+          "times": [
+            7374.333624960855,
+            7378.5390839912,
+            7593.254792038351,
+            7420.861750142649,
+            7767.259208019823
+          ]
+        },
+        "optimized": {
+          "mean": 1568.547583417967,
+          "std": 23.047744723165305,
+          "ci95": 20.2022389801914,
+          "median": 1570.5817500129342,
+          "min": 1539.8020420689136,
+          "max": 1598.718082997948,
+          "times": [
+            1545.495416969061,
+            1598.718082997948,
+            1588.1406250409782,
+            1539.8020420689136,
+            1570.5817500129342
+          ]
+        },
+        "speedup": 4.785860353354829
+      }
+    }
+  },
+  "roofline_analysis": {
+    "hardware": {
+      "name": "Apple M4 Max (40-core GPU)",
+      "peak_fp32_gflops": 14000,
+      "mem_bw_gbps": 546,
+      "ridge_point": 25.641025641025642
+    },
+    "results": [
+      {
+        "name": "RMSNorm+FiLM (JIT)",
+        "time_us": 26.754291029646993,
+        "flops": 57344,
+        "bytes": 77824,
+        "arithmetic_intensity": 0.7368421052631579,
+        "achieved_gflops": 2.1433571136852745,
+        "achieved_bw_gbps": 2.9088417971443006,
+        "roofline_ceiling_gflops": 402.31578947368416,
+        "efficiency_pct": 0.5327549079018867,
+        "bound": "memory"
+      },
+      {
+        "name": "RMSNorm+FiLM (Metal)",
+        "time_us": 12.661874992772937,
+        "flops": 57344,
+        "bytes": 77824,
+        "arithmetic_intensity": 0.7368421052631579,
+        "achieved_gflops": 4.528871121593796,
+        "achieved_bw_gbps": 6.146325093591579,
+        "roofline_ceiling_gflops": 402.31578947368416,
+        "efficiency_pct": 1.1257005665918647,
+        "bound": "memory"
+      },
+      {
+        "name": "Tiny Attention (JIT)",
+        "time_us": 94.89324991591275,
+        "flops": 300032,
+        "bytes": 131584,
+        "arithmetic_intensity": 2.280155642023346,
+        "achieved_gflops": 3.1617844289858947,
+        "achieved_bw_gbps": 1.386652898036476,
+        "roofline_ceiling_gflops": 1244.964980544747,
+        "efficiency_pct": 0.25396573224111285,
+        "bound": "memory"
+      },
+      {
+        "name": "Tiny Attention (Metal)",
+        "time_us": 40.37200007587671,
+        "flops": 300032,
+        "bytes": 131584,
+        "arithmetic_intensity": 2.280155642023346,
+        "achieved_gflops": 7.431685312496486,
+        "achieved_bw_gbps": 3.259288609746753,
+        "roofline_ceiling_gflops": 1244.964980544747,
+        "efficiency_pct": 0.5969393058144236,
+        "bound": "memory"
+      },
+      {
+        "name": "DDPM Step (JIT)",
+        "time_us": 41.129833087325096,
+        "flops": 15360,
+        "bytes": 12296,
+        "arithmetic_intensity": 1.2491867273910215,
+        "achieved_gflops": 0.3734515520009115,
+        "achieved_bw_gbps": 0.29895574761739635,
+        "roofline_ceiling_gflops": 682.0559531554977,
+        "efficiency_pct": 0.05475379992992607,
+        "bound": "memory"
+      },
+      {
+        "name": "DDPM Step (Metal)",
+        "time_us": 107.32316691428423,
+        "flops": 15360,
+        "bytes": 12296,
+        "arithmetic_intensity": 1.2491867273910215,
+        "achieved_gflops": 0.14311914604856535,
+        "achieved_bw_gbps": 0.11456985806075257,
+        "roofline_ceiling_gflops": 682.0559531554977,
+        "efficiency_pct": 0.020983490487317322,
+        "bound": "memory"
+      },
+      {
+        "name": "GPT-2 decode-8 (KV cached, prefix=64)",
+        "time_us": 95559.60062425584,
+        "flops": 11430789120,
+        "bytes": 2857697280,
+        "arithmetic_intensity": 4.0,
+        "achieved_gflops": 119.61947355709782,
+        "achieved_bw_gbps": 29.904868389274455,
+        "roofline_ceiling_gflops": 2184.0,
+        "efficiency_pct": 5.477082122577738,
+        "bound": "memory"
+      },
+      {
+        "name": "SoftPromptGenerator (6-layer)",
+        "time_us": 2774.8150839470327,
+        "flops": 1220542464,
+        "bytes": 302034944,
+        "arithmetic_intensity": 4.041063751881636,
+        "achieved_gflops": 439.86443315128616,
+        "achieved_bw_gbps": 108.84867454676322,
+        "roofline_ceiling_gflops": 2206.4208085273735,
+        "efficiency_pct": 19.935654678894362,
+        "bound": "memory"
+      }
+    ]
+  },
+  "incremental_optimization": {
+    "device": "mps",
+    "num_runs": 5,
+    "warmup": 2,
+    "sampling_timesteps": 50,
+    "prompt": "The meaning of life is",
+    "prompt_tokens": 5,
+    "fused_blocks": true,
+    "results": {
+      "1. BASELINE (unfused, no KV)": {
+        "mean": 1581.4794584177434,
+        "std": 37.05784245869959,
+        "median": 1565.767667023465,
+        "min": 1548.9831250160933,
+        "max": 1652.6664169505239,
+        "times": [
+          1580.7592081837356,
+          1559.2208749148995,
+          1548.9831250160933,
+          1565.767667023465,
+          1652.6664169505239
+        ]
+      },
+      "2. + KV-cache only": {
+        "mean": 1389.5579582080245,
+        "std": 23.31356337588021,
+        "median": 1376.236042007804,
+        "min": 1368.387290975079,
+        "max": 1427.2785410284996,
+        "times": [
+          1369.724625023082,
+          1406.1632920056581,
+          1376.236042007804,
+          1368.387290975079,
+          1427.2785410284996
+        ]
+      },
+      "3. + Fused micro-transformer ops": {
+        "mean": 1469.4814749993384,
+        "std": 7.492177165845966,
+        "median": 1470.357917016372,
+        "min": 1456.118666101247,
+        "max": 1476.7162499483675,
+        "times": [
+          1476.7162499483675,
+          1470.357917016372,
+          1476.3024589046836,
+          1467.9120830260217,
+          1456.118666101247
+        ]
+      },
+      "4. + Fused + KV-cache": {
+        "mean": 1394.292649999261,
+        "std": 20.839442137886838,
+        "median": 1399.5962908957154,
+        "min": 1368.1469589937478,
+        "max": 1425.3661250695586,
+        "times": [
+          1368.1469589937478,
+          1425.3661250695586,
+          1399.5962908957154,
+          1374.3145000189543,
+          1404.0393750183284
+        ]
+      },
+      "5. + Fused + KV-cache + Async": {
+        "mean": 1426.1600834317505,
+        "std": 22.9064719285953,
+        "median": 1431.815000018105,
+        "min": 1384.2370421625674,
+        "max": 1453.990750014782,
+        "times": [
+          1426.9240000285208,
+          1433.8336249347776,
+          1431.815000018105,
+          1384.2370421625674,
+          1453.990750014782
+        ]
+      }
+    }
+  },
+  "batch_scaling": {
+    "sampling_timesteps": 50,
+    "device": "mps",
+    "config": "fused + KV-cache",
+    "results": {
+      "1": {
+        "batch_size": 1,
+        "mean_ms": 1339.1715415442984,
+        "std_ms": 4.213719686934188,
+        "per_sample_ms": 1339.1715415442984,
+        "throughput_samples_per_sec": 0.7467303246653715
+      },
+      "2": {
+        "batch_size": 2,
+        "mean_ms": 1925.7083609700203,
+        "std_ms": 26.643979662877108,
+        "per_sample_ms": 962.8541804850101,
+        "throughput_samples_per_sec": 1.0385788629969688
+      },
+      "4": {
+        "batch_size": 4,
+        "mean_ms": 2987.1983332559466,
+        "std_ms": 9.21156355037624,
+        "per_sample_ms": 746.7995833139867,
+        "throughput_samples_per_sec": 1.3390473459591594
+      },
+      "8": {
+        "batch_size": 8,
+        "mean_ms": 5895.309430314228,
+        "std_ms": 168.1219273922326,
+        "per_sample_ms": 736.9136787892785,
+        "throughput_samples_per_sec": 1.3570110431970301
+      }
+    }
+  },
+  "baseline_profiling_50prompts": {
+    "config": {
+      "device": "mps",
+      "sampling_timesteps": 50,
+      "sampler": "ddpm",
+      "num_prompts": 50,
+      "model_path": "checkpoints/star-ldm"
+    },
+    "aggregate": {
+      "noise_schedule": {
+        "mean": 15.911024338565767,
+        "std": 0.28515904000687087,
+        "median": 15.8747099339962,
+        "p5": 15.528987764264457,
+        "p95": 16.36256408819463,
+        "p99": 16.792673067539,
+        "min": 15.439711103681475,
+        "max": 17.042917374055833,
+        "n": 50
+      },
+      "soft_prompt_generator": {
+        "mean": 207.8155828861054,
+        "std": 2.5253053089818938,
+        "median": 207.67877047182992,
+        "p5": 204.12202170409728,
+        "p95": 212.64642328605987,
+        "p99": 214.17074035212863,
+        "min": 202.7486657607369,
+        "max": 214.36516399262473,
+        "n": 50
+      },
+      "lm_embedding": {
+        "mean": 11.090584833873436,
+        "std": 1.3499604684008801,
+        "median": 10.36285312147811,
+        "p5": 9.653932412038557,
+        "p95": 12.855226459214464,
+        "p99": 14.770408071926793,
+        "min": 9.42649896023795,
+        "max": 15.329417248722166,
+        "n": 50
+      },
+      "gpt2_forward": {
+        "mean": 884.0922770020552,
+        "std": 145.50219545055162,
+        "median": 876.017165981466,
+        "p5": 688.7576970882947,
+        "p95": 1101.1838902253658,
+        "p99": 1102.9000837675994,
+        "min": 658.7967079831287,
+        "max": 1103.1827561673708,
+        "n": 50
+      },
+      "extract_diffusion_hidden": {
+        "mean": 36.08230927377008,
+        "std": 1.2997415939732686,
+        "median": 35.85592194576748,
+        "p5": 34.2738702747738,
+        "p95": 38.166578390519135,
+        "p99": 39.287679686094634,
+        "min": 33.59745588386431,
+        "max": 39.444540918339044,
+        "n": 50
+      },
+      "concat_for_scorenet": {
+        "mean": 6.6470524098258466,
+        "std": 0.15438225180624754,
+        "median": 6.614501355215907,
+        "p5": 6.464528132346459,
+        "p95": 6.8972828186815605,
+        "p99": 7.068847896298394,
+        "min": 6.3872491009533405,
+        "max": 7.14816729305312,
+        "n": 50
+      },
+      "score_net_head": {
+        "mean": 210.6230720959138,
+        "std": 2.765312798712685,
+        "median": 210.85953930742107,
+        "p5": 206.39880443923175,
+        "p95": 214.94425541895907,
+        "p99": 215.3528119850671,
+        "min": 202.1839169319719,
+        "max": 215.46916593797505,
+        "n": 50
+      },
+      "v_to_x0_eps": {
+        "mean": 9.748938494594768,
+        "std": 0.35729990481602286,
+        "median": 9.680500108515844,
+        "p5": 9.325341691146605,
+        "p95": 10.460549805429764,
+        "p99": 10.732861973810941,
+        "min": 9.169085940811783,
+        "max": 10.827042744494975,
+        "n": 50
+      },
+      "ddpm_step": {
+        "mean": 15.345545570598915,
+        "std": 0.40586136892846686,
+        "median": 15.318230463890359,
+        "p5": 14.829692544299178,
+        "p95": 16.01093671633862,
+        "p99": 16.48966367065441,
+        "min": 14.554125082213432,
+        "max": 16.90816693007946,
+        "n": 50
+      },
+      "final_soft_prompt": {
+        "mean": 4.3020733166486025,
+        "std": 0.19624081413248956,
+        "median": 4.302478977479041,
+        "p5": 4.007043887395412,
+        "p95": 4.650800020317547,
+        "p99": 4.7289385221665725,
+        "min": 3.7642920506186783,
+        "max": 4.746333055663854,
+        "n": 50
+      },
+      "final_embed_prep": {
+        "mean": 1.4901740942150354,
+        "std": 1.396761010526919,
+        "median": 0.25479201576672494,
+        "p5": 0.1888437516754493,
+        "p95": 3.143374712090008,
+        "p99": 3.6044472723733616,
+        "min": 0.1824999926611781,
+        "max": 3.986708994489163,
+        "n": 50
+      },
+      "gpt2_generate": {
+        "mean": 878.7896491819993,
+        "std": 13.449139256912957,
+        "median": 875.3987290256191,
+        "p5": 859.7007689008024,
+        "p95": 905.7526874879841,
+        "p99": 913.6951177811716,
+        "min": 854.5698330271989,
+        "max": 915.1412920327857,
+        "n": 50
+      },
+      "total": {
+        "mean": 2281.938283498166,
+        "std": 155.2106331014136,
+        "median": 2264.3442447588313,
+        "p5": 2078.9816635806346,
+        "p95": 2516.228327449062,
+        "p99": 2529.7259501134977,
+        "min": 2032.7708711847663,
+        "max": 2539.822985592764,
+        "n": 50
+      }
+    },
+    "runs": [
+      {
+        "prompt": "We wanted to arrange a special tour and after a bit of research on the net decided that NZ was the place to go",
+        "prompt_token_len": 24,
+        "generation": " shy of. The local guide, who is very knowledgeable about the area and the people there was worth it\u2019s weight in gold. All that being said our group had a fantastic time with good company and we all love Paris so far so hopefully will go back next year when the weather cooperates!\nAfter that",
+        "timings": {
+          "noise_schedule": 15.58116910746321,
+          "soft_prompt_generator": 202.7486657607369,
+          "lm_embedding": 11.919750075321645,
+          "gpt2_forward": 851.0242928750813,
+          "extract_diffusion_hidden": 34.698043833486736,
+          "concat_for_scorenet": 6.3872491009533405,
+          "score_net_head": 206.315666961018,
+          "v_to_x0_eps": 9.657296177465469,
+          "ddpm_step": 14.554125082213432,
+          "final_soft_prompt": 4.0825000032782555,
+          "final_embed_prep": 2.646750013809651,
+          "gpt2_generate": 882.2763750213198
+        },
+        "total_ms": 2241.891884012148
+      },
+      {
+        "prompt": "Cash Mart could to help you.\nBad credit and need a loan? With CashMart you have options.\nBad credit is not a problem. Cash Mart a few minutes approved!.\nCash Mart provided easy",
+        "prompt_token_len": 42,
+        "generation": " Surprise with easy money.\nCash Mart provided me quick attention. CashMart loan at a minimal charge of 300$, and that\u2019s all the amount I will have to borrow in future. This is a great site for a simple cash advance, a good way to obtain a small amount of money.\n|Business",
+        "timings": {
+          "noise_schedule": 15.7791682286188,
+          "soft_prompt_generator": 206.42945572035387,
+          "lm_embedding": 10.032623773440719,
+          "gpt2_forward": 962.9501260933466,
+          "extract_diffusion_hidden": 37.34070289647207,
+          "concat_for_scorenet": 6.554210849571973,
+          "score_net_head": 210.94974712468684,
+          "v_to_x0_eps": 9.459417138714343,
+          "ddpm_step": 14.872664993163198,
+          "final_soft_prompt": 4.0376249817200005,
+          "final_embed_prep": 0.22283295402303338,
+          "gpt2_generate": 868.960625026375
+        },
+        "total_ms": 2347.5891997804865
+      },
+      {
+        "prompt": "Anglers love to debate, banter and oftentimes engage in some plain old fashion bragging \u2013 usually, good-naturedly, I might add \u2013 when it comes to fishing. It\u2019s always been that way and I imagine that kind of friendly discourse between anglers will always be a part of",
+        "prompt_token_len": 61,
+        "generation": "Namely, whether it\u2019s fishing in an \u201copen waters\u201d state or out-of-doors. Anglers are very much a fishing community and as they get more experienced or have children, their true nature will show through: how far back in line to bring the next trophy. They usually stick",
+        "timings": {
+          "noise_schedule": 15.741421142593026,
+          "soft_prompt_generator": 205.601877940353,
+          "lm_embedding": 11.817458143923432,
+          "gpt2_forward": 1099.740662786644,
+          "extract_diffusion_hidden": 37.69400221062824,
+          "concat_for_scorenet": 6.868332042358816,
+          "score_net_head": 212.87429402582347,
+          "v_to_x0_eps": 9.423077921383083,
+          "ddpm_step": 15.101086988579482,
+          "final_soft_prompt": 4.085584019776434,
+          "final_embed_prep": 3.986708994489163,
+          "gpt2_generate": 890.5854590120725
+        },
+        "total_ms": 2513.5199652286246
+      },
+      {
+        "prompt": "Our sharpest scissors have an adjustable tension knob to loosen or tighten for variable material thickness. Cuts through Synt",
+        "prompt_token_len": 22,
+        "generation": "uchi Fingal, Salmon Bone and Keltor for the most precise cutting. The soft side of the blade is designed to give you a smoother cut that helps ensure the fish stays alive under pressure.\nThe 2-inch knife provides an excellent angle for chopping. You can use this as part of your fly selection",
+        "timings": {
+          "noise_schedule": 15.486293938010931,
+          "soft_prompt_generator": 205.168918822892,
+          "lm_embedding": 11.875376279931515,
+          "gpt2_forward": 734.3829191522673,
+          "extract_diffusion_hidden": 33.73171004932374,
+          "concat_for_scorenet": 6.6144203883595765,
+          "score_net_head": 202.1839169319719,
+          "v_to_x0_eps": 9.364411933347583,
+          "ddpm_step": 14.765043102670461,
+          "final_soft_prompt": 4.301249980926514,
+          "final_embed_prep": 3.114374994765967,
+          "gpt2_generate": 870.1129999826662
+        },
+        "total_ms": 2111.1016355571337
+      },
+      {
+        "prompt": "Since the outcome of this match is irrelevant, I will be attempting to stream Agony vs Godfathers LIVE from my ship.",
+        "prompt_token_len": 26,
+        "generation": "atin America network. The live stream is available on the Wrestling Network, which has a lot of great packages for adults and children that you can watch as well.\nHere\u2019s some more information from ROH:\nROWE\u2018S TALENTED FANS AT ANACLEAST 6 INTER",
+        "timings": {
+          "noise_schedule": 15.880876802839339,
+          "soft_prompt_generator": 208.9636672171764,
+          "lm_embedding": 12.43029092438519,
+          "gpt2_forward": 857.8712508897297,
+          "extract_diffusion_hidden": 34.67624675249681,
+          "concat_for_scorenet": 6.543411174789071,
+          "score_net_head": 209.4680811278522,
+          "v_to_x0_eps": 10.06791676627472,
+          "ddpm_step": 14.822791854385287,
+          "final_soft_prompt": 4.226832999847829,
+          "final_embed_prep": 0.2175829722546041,
+          "gpt2_generate": 872.6210419554263
+        },
+        "total_ms": 2247.7899914374575
+      },
+      {
+        "prompt": "Earlier this week, writer Aisha Harris composed an essay asking for a",
+        "prompt_token_len": 14,
+        "generation": " Captain\u2019s Statement for her article, \u201cVoices of the #MeToo Movement.\u201d Her goal was to write an op-ed that would make it more likely people see and accept the truth about systemic racism against Black folks by taking a clear stand on police brutality against non-white communities as well",
+        "timings": {
+          "noise_schedule": 15.735544031485915,
+          "soft_prompt_generator": 204.41879285499454,
+          "lm_embedding": 9.64470679173246,
+          "gpt2_forward": 712.1887511457317,
+          "extract_diffusion_hidden": 34.45258503779769,
+          "concat_for_scorenet": 6.5089992131106555,
+          "score_net_head": 207.42153673199937,
+          "v_to_x0_eps": 10.37087687291205,
+          "ddpm_step": 14.8381267208606,
+          "final_soft_prompt": 4.418833006639034,
+          "final_embed_prep": 2.926790970377624,
+          "gpt2_generate": 870.0894160429016
+        },
+        "total_ms": 2093.014959420543
+      },
+      {
+        "prompt": "This week\u2019s poem, \u201cWhen I Read The Book",
+        "prompt_token_len": 14,
+        "generation": " villains in the Book of the Soldier,\u201d is a few more tidbits from the rest of my book, The Lesson. Please enjoy!\nA big box of tissues\nFor every person who leaves the battlefield alive\nI thought this would be the most sweet gift I could receive; but it was even swe",
+        "timings": {
+          "noise_schedule": 15.882587002124637,
+          "soft_prompt_generator": 203.87920894427225,
+          "lm_embedding": 9.838833939284086,
+          "gpt2_forward": 704.0679972269572,
+          "extract_diffusion_hidden": 35.59429227607325,
+          "concat_for_scorenet": 6.549455923959613,
+          "score_net_head": 213.28220784198493,
+          "v_to_x0_eps": 9.174710663501173,
+          "ddpm_step": 15.088463318534195,
+          "final_soft_prompt": 4.313417011871934,
+          "final_embed_prep": 0.22833299590274692,
+          "gpt2_generate": 868.3145409449935
+        },
+        "total_ms": 2086.2140480894595
+      },
+      {
+        "prompt": "Consistently, brillinat chevrolet el camino hot rod hdr car black background screen can help out for us to",
+        "prompt_token_len": 27,
+        "generation": " Decide and Decorate your room. And to obtain the most accurate image concerning brillinat chevrolet el camino hot rod hdr car black background screen for free, simply right click on the gallery below the brillinat chevrolet el camino hotrod hd white background picture and choose \"save",
+        "timings": {
+          "noise_schedule": 15.818253858014941,
+          "soft_prompt_generator": 208.99812615243718,
+          "lm_embedding": 12.251753825694323,
+          "gpt2_forward": 811.4486651611514,
+          "extract_diffusion_hidden": 36.06191813014448,
+          "concat_for_scorenet": 6.608123774640262,
+          "score_net_head": 211.12012182129547,
+          "v_to_x0_eps": 9.848998917732388,
+          "ddpm_step": 15.712373075075448,
+          "final_soft_prompt": 4.080749989952892,
+          "final_embed_prep": 3.136040992103517,
+          "gpt2_generate": 870.1233749743551
+        },
+        "total_ms": 2205.2085006725974
+      },
+      {
+        "prompt": "While TrinityCore does not officially support MySQL version >= 5.6, there is a way to get it up and running.\nthe above will work fine with mysql 5.6 / mariaDB 10 and TC.\nthis will NOT work with TC + mysql 5.6",
+        "prompt_token_len": 56,
+        "generation": "saveversion:\nWhere to find the newest version of MySQL?\nYou can download it from this link : http://www.angelfirephp.com/mbtools/downloads/mariaDB_5_0.1-beta4\nOn Windows or Linux machines, there is a way to test",
+        "timings": {
+          "noise_schedule": 15.667960804421455,
+          "soft_prompt_generator": 206.26537402858958,
+          "lm_embedding": 9.884837025310844,
+          "gpt2_forward": 1101.6381671652198,
+          "extract_diffusion_hidden": 36.470463790465146,
+          "concat_for_scorenet": 6.58575224224478,
+          "score_net_head": 211.62233111681417,
+          "v_to_x0_eps": 9.385582117829472,
+          "ddpm_step": 14.906499185599387,
+          "final_soft_prompt": 4.710834007710218,
+          "final_embed_prep": 2.8046660008840263,
+          "gpt2_generate": 878.1458330340683
+        },
+        "total_ms": 2498.088300519157
+      },
+      {
+        "prompt": "Thank you, I have just been looking for info about this topic for a long time and yours is the best I have found out till now. But, what in regards to the conclusion? Are",
+        "prompt_token_len": 39,
+        "generation": "iforml I have some ideas on how to proceed? Once i receive these steps for them to leave the home? Thank you.\nWhen the time is up, when will police be involved in a crime and what should i do after that? Thanks!\nYou're lucky we know which way to go or what to",
+        "timings": {
+          "noise_schedule": 15.91229101177305,
+          "soft_prompt_generator": 207.62170798843727,
+          "lm_embedding": 12.39254092797637,
+          "gpt2_forward": 905.0956221180968,
+          "extract_diffusion_hidden": 36.80262714624405,
+          "concat_for_scorenet": 6.67317007901147,
+          "score_net_head": 209.33270594105124,
+          "v_to_x0_eps": 9.681000956334174,
+          "ddpm_step": 15.112460183445364,
+          "final_soft_prompt": 4.613082972355187,
+          "final_embed_prep": 2.430666994769126,
+          "gpt2_generate": 910.4714999557473
+        },
+        "total_ms": 2336.1393762752414
+      },
+      {
+        "prompt": "Hulu's latest original series, Castle Rock, is inspired by the works of Stephen King -- but is the resulting series Stephen Kingdom Hearts? Deadspin editor, Dave And Jeb Aren't Mean co-host, and",
+        "prompt_token_len": 43,
+        "generation": " Truman Critic discuss this week's episode, which aired Sunday night, October 12. They then agree on a debate about whether the show is the best in years or if it might be the worst ever to have been on television -- the discussion ends with Dave and Jeb agreeing that the reason they hate the royal kids' summer",
+        "timings": {
+          "noise_schedule": 15.983202669303864,
+          "soft_prompt_generator": 208.92908208770677,
+          "lm_embedding": 12.271791230887175,
+          "gpt2_forward": 974.6187892160378,
+          "extract_diffusion_hidden": 35.810374887660146,
+          "concat_for_scorenet": 6.728542095515877,
+          "score_net_head": 212.19408517936245,
+          "v_to_x0_eps": 9.78337595006451,
+          "ddpm_step": 15.136088186409324,
+          "final_soft_prompt": 4.411000001709908,
+          "final_embed_prep": 2.92824994539842,
+          "gpt2_generate": 889.5699159475043
+        },
+        "total_ms": 2388.3644973975606
+      },
+      {
+        "prompt": "We are one of the leading Manufacturer of a wide range of Kids Romper, Kids Baba Suit and Kids Cotton Pajama to",
+        "prompt_token_len": 27,
+        "generation": " product online.We offer our products with global distribution as we believe in supplying quality to the customer at economical prices. We are committed for giving back to the society through donation and profit by providing them gift wrap, Gift Cards & promotional gifts.\nTo give your satisfaction with this soft comfy material is our strong goal.",
+        "timings": {
+          "noise_schedule": 16.047377372160554,
+          "soft_prompt_generator": 214.36516399262473,
+          "lm_embedding": 10.368830291554332,
+          "gpt2_forward": 796.9357021502219,
+          "extract_diffusion_hidden": 38.367915083654225,
+          "concat_for_scorenet": 6.630751013290137,
+          "score_net_head": 214.09587608650327,
+          "v_to_x0_eps": 10.045709204860032,
+          "ddpm_step": 16.010910912882537,
+          "final_soft_prompt": 4.746333055663854,
+          "final_embed_prep": 0.20604196470230818,
+          "gpt2_generate": 864.9491670075804
+        },
+        "total_ms": 2192.7697781356983
+      },
+      {
+        "prompt": "Ejercicios Res",
+        "prompt_token_len": 6,
+        "generation": " pilares\n18 N Ejercicios Avenue, Fort Collins, CO 80528.\nRestaurant on the North Side has been re-designated as Etnogro's Resto Argentina since November 1st! The team is hard at work making a big improvement in our menu and the decision",
+        "timings": {
+          "noise_schedule": 15.743578085675836,
+          "soft_prompt_generator": 204.76117072394118,
+          "lm_embedding": 10.533957276493311,
+          "gpt2_forward": 1008.6662521935068,
+          "extract_diffusion_hidden": 35.72337474906817,
+          "concat_for_scorenet": 7.14816729305312,
+          "score_net_head": 207.9826652770862,
+          "v_to_x0_eps": 9.73433634499088,
+          "ddpm_step": 15.135952038690448,
+          "final_soft_prompt": 4.151583008933812,
+          "final_embed_prep": 2.9114580247551203,
+          "gpt2_generate": 882.7107090037316
+        },
+        "total_ms": 2405.2032040199265
+      },
+      {
+        "prompt": "G.A. Megas, Anna Angelopoulos, Aigli Brouskou, Marianthi Kaplanoglou",
+        "prompt_token_len": 25,
+        "generation": " Hera, K. M. Roloff et al., \u201cEnzyme dissection and characterization of the proteins in a practical solution: functional groups and other constituents\u201d , (1975) Molecular Biophysics Review, 4(4), pp. 291-300.\nG.A. Megas; J",
+        "timings": {
+          "noise_schedule": 16.382081899791956,
+          "soft_prompt_generator": 209.66704096645117,
+          "lm_embedding": 12.93770590564236,
+          "gpt2_forward": 796.720250917133,
+          "extract_diffusion_hidden": 36.149665305856615,
+          "concat_for_scorenet": 6.492124870419502,
+          "score_net_head": 209.03370901942253,
+          "v_to_x0_eps": 9.535461547784507,
+          "ddpm_step": 15.644084138330072,
+          "final_soft_prompt": 4.5223330380395055,
+          "final_embed_prep": 3.035166999325156,
+          "gpt2_generate": 874.7223340324126
+        },
+        "total_ms": 2194.841958640609
+      },
+      {
+        "prompt": "Classified as SN at distance 6.72 arcsec.\nThe transient is possibly associated with CGCG261-038; an unknown-mag galaxy found in the NED catalogue. It's located 1.30 S, 6.60 E (4.7 K",
+        "prompt_token_len": 56,
+        "generation": " G = 186,000) at zenith and equator of its cluster EO2012-1848. The other two are similar in size with 4.4, 8.3 (5 K G = 176 000) mags, all located along the southern pole; and a dimmed CGCG263",
+        "timings": {
+          "noise_schedule": 15.702084871008992,
+          "soft_prompt_generator": 208.87895621126518,
+          "lm_embedding": 10.21466392558068,
+          "gpt2_forward": 986.5745378192514,
+          "extract_diffusion_hidden": 36.17475047940388,
+          "concat_for_scorenet": 6.640750914812088,
+          "score_net_head": 210.8533308492042,
+          "v_to_x0_eps": 9.888208762276918,
+          "ddpm_step": 15.335417061578482,
+          "final_soft_prompt": 4.228749952744693,
+          "final_embed_prep": 0.2008749870583415,
+          "gpt2_generate": 899.9852500273846
+        },
+        "total_ms": 2404.6775758615695
+      },
+      {
+        "prompt": "It is common knowledge that",
+        "prompt_token_len": 5,
+        "generation": " pilings, cars and bugs are the objects of their most scaring stories. Kids are pretty sensitive to what they\u2019re running into and will run for a long time before stopping at rest zones in order not get caught by an insect or bug. I have several parents who talk about how scary this is on me",
+        "timings": {
+          "noise_schedule": 16.175166005268693,
+          "soft_prompt_generator": 209.03725025709718,
+          "lm_embedding": 12.399506173096597,
+          "gpt2_forward": 676.2310878839344,
+          "extract_diffusion_hidden": 34.298001788556576,
+          "concat_for_scorenet": 6.622961140237749,
+          "score_net_head": 208.5017078788951,
+          "v_to_x0_eps": 9.601835918147117,
+          "ddpm_step": 15.617913973983377,
+          "final_soft_prompt": 4.304709029383957,
+          "final_embed_prep": 3.022082964889705,
+          "gpt2_generate": 868.992458039429
+        },
+        "total_ms": 2064.8046810529195
+      },
+      {
+        "prompt": "Best wishes of the New Year! Stay safe & enjoy!\nKnowing New Year\u2019s Eve is fast approaching, I wanted to",
+        "prompt_token_len": 27,
+        "generation": " shy away from my usual posts, which are all about celebrating the new year. Instead, I\u2019ll just share one special memory of last year when we were still \u201cco-workers and friends.\u201d It began with a phone call to spend New Year\u2019s Eve together in our pew!",
+        "timings": {
+          "noise_schedule": 16.06374909169972,
+          "soft_prompt_generator": 206.39695873251185,
+          "lm_embedding": 9.599916986189783,
+          "gpt2_forward": 794.1866267938167,
+          "extract_diffusion_hidden": 35.0039997138083,
+          "concat_for_scorenet": 6.418209872208536,
+          "score_net_head": 210.65146004548296,
+          "v_to_x0_eps": 10.634837090037763,
+          "ddpm_step": 15.61991695780307,
+          "final_soft_prompt": 4.248375014867634,
+          "final_embed_prep": 0.1824999926611781,
+          "gpt2_generate": 863.2266250206158
+        },
+        "total_ms": 2172.2331753117032
+      },
+      {
+        "prompt": "One of our core services is managing and supporting our clients\u2019 business critical applications, and we provide this specialised service to the Australia's leading industries players. Building on the concept of software as a service, our solution offers an industrial",
+        "prompt_token_len": 47,
+        "generation": " Bloom, a SaaS solution or an on premise application management system to suit all your software development and support needs. We can also provide guidance and help you with implementing your requirements for changes in the way you do business as well as providing ongoing monitoring services\nWe have partnered with OSA Consultants Pty Ltd who",
+        "timings": {
+          "noise_schedule": 16.138997860252857,
+          "soft_prompt_generator": 208.8376238825731,
+          "lm_embedding": 12.348042044322938,
+          "gpt2_forward": 985.953291063197,
+          "extract_diffusion_hidden": 36.28349705832079,
+          "concat_for_scorenet": 6.732625130098313,
+          "score_net_head": 211.12199826166034,
+          "v_to_x0_eps": 9.745124902110547,
+          "ddpm_step": 15.426544065121561,
+          "final_soft_prompt": 4.370832990389317,
+          "final_embed_prep": 0.23662502644583583,
+          "gpt2_generate": 895.5749159795232
+        },
+        "total_ms": 2402.7701182640158
+      },
+      {
+        "prompt": "\u200bWe're glad you stopped by. We just love visitors!\n\u200bhigh-fire stoneware making it ideal art for everyday use.\n\u200bWant more",
+        "prompt_token_len": 33,
+        "generation": "ghost colors? We've got you covered.\nessage from the design team:\nWe\u2019d love to show off all of our amazing product. Our Spring 2018 collection features sleek glasses, cozy bottoms and stunning cocktail glasses with modern details - we think you'll agree! email us at firstname.lastname",
+        "timings": {
+          "noise_schedule": 15.439711103681475,
+          "soft_prompt_generator": 205.07533411728218,
+          "lm_embedding": 12.434873031452298,
+          "gpt2_forward": 894.1630810732022,
+          "extract_diffusion_hidden": 35.4006290435791,
+          "concat_for_scorenet": 6.581662979442626,
+          "score_net_head": 207.72442093584687,
+          "v_to_x0_eps": 9.389412007294595,
+          "ddpm_step": 14.911249745637178,
+          "final_soft_prompt": 4.196833004243672,
+          "final_embed_prep": 0.22133300080895424,
+          "gpt2_generate": 875.359958037734
+        },
+        "total_ms": 2280.898498080205
+      },
+      {
+        "prompt": "Underneath its idyllic fa\u00e7ade, the bucolic town of Brokenwood, New Zealand harbors simmering passions that often erupt into grisly crimes. In four new feature-length",
+        "prompt_token_len": 41,
+        "generation": " Muskok episodes, Kathryn Kingsbury (Little Red Riding Hood) finds herself in the action as a local investigator pursues an intriguing case involving brutal butchery and drug-induced poisoning. Shot on location at the stunning Brokenwood Bay Lodge, the series is peppered with dramatic vignettes that make for one fascinating viewing",
+        "timings": {
+          "noise_schedule": 16.532214707694948,
+          "soft_prompt_generator": 209.56466405186802,
+          "lm_embedding": 12.754418246913701,
+          "gpt2_forward": 973.8027929561213,
+          "extract_diffusion_hidden": 36.91095800604671,
+          "concat_for_scorenet": 6.751209904905409,
+          "score_net_head": 212.67187013290823,
+          "v_to_x0_eps": 10.365041147451848,
+          "ddpm_step": 15.605588909238577,
+          "final_soft_prompt": 4.350583010818809,
+          "final_embed_prep": 0.18987496150657535,
+          "gpt2_generate": 874.4445840129629
+        },
+        "total_ms": 2373.943800048437
+      },
+      {
+        "prompt": "CHARLES KRAUTH",
+        "prompt_token_len": 5,
+        "generation": " product card (Avis/West Coast and West-Van dealer credit cards)\nto one person to buy a diesel lease. It comes with $100 cash back, 12 months of unlimited fuel, 24-hour roadside assistance and a 1-year limited powertrain warranty from the carmaker or another authorized dealer for $",
+        "timings": {
+          "noise_schedule": 15.655916067771614,
+          "soft_prompt_generator": 208.48100120201707,
+          "lm_embedding": 9.933957713656127,
+          "gpt2_forward": 658.7967079831287,
+          "extract_diffusion_hidden": 34.598039637785405,
+          "concat_for_scorenet": 6.603413785342127,
+          "score_net_head": 210.0025019608438,
+          "v_to_x0_eps": 10.218748881015927,
+          "ddpm_step": 16.90816693007946,
+          "final_soft_prompt": 4.037041973788291,
+          "final_embed_prep": 0.2567500341683626,
+          "gpt2_generate": 857.2786250151694
+        },
+        "total_ms": 2032.7708711847663
+      },
+      {
+        "prompt": "As a blogger, you hear all the time that the money is in your e-mail list. Big bloggers tell you to grow your list, and focus on it until it reaches a substantial size. Some will even tell you the secret: Content Upgrades. These 5 Content upgrades will grow your email list FAST",
+        "prompt_token_len": 63,
+        "generation": " effectively and will solve all your main issues in about 1:1. Here\u2019s a couple to get you started\u2026.\n- Completing the longest task in your day is awesome! Focus on it, and then take an extra 20 minutes of uninterrupted time each week for that thing\u2026it can be so much fun",
+        "timings": {
+          "noise_schedule": 15.837830898817629,
+          "soft_prompt_generator": 208.9477931149304,
+          "lm_embedding": 12.407998845446855,
+          "gpt2_forward": 1103.1827561673708,
+          "extract_diffusion_hidden": 39.12441595457494,
+          "concat_for_scorenet": 6.758834409993142,
+          "score_net_head": 214.36158596770838,
+          "v_to_x0_eps": 9.496167884208262,
+          "ddpm_step": 15.70033491589129,
+          "final_soft_prompt": 3.9824999985285103,
+          "final_embed_prep": 3.1493750284425914,
+          "gpt2_generate": 885.4946669889614
+        },
+        "total_ms": 2518.444260174874
+      },
+      {
+        "prompt": "Use the sideburners to kill bees without slowing down. If you kill with the bottom of the Rocket you will slow",
+        "prompt_token_len": 24,
+        "generation": "gonk. This will return a self-destructing (a little slow) sting to your dead bee, like the Helium Bomb.\nIf you turn on Mantis Autoshot, the auto attack function of the scorpion morph allows for a +1 bonus damage resistance when dealing with the enemies who are using",
+        "timings": {
+          "noise_schedule": 15.767704288009554,
+          "soft_prompt_generator": 203.2088748528622,
+          "lm_embedding": 9.665208170190454,
+          "gpt2_forward": 714.7979999426752,
+          "extract_diffusion_hidden": 34.25412630895153,
+          "concat_for_scorenet": 6.459129217546433,
+          "score_net_head": 209.55299981869757,
+          "v_to_x0_eps": 9.441250935196877,
+          "ddpm_step": 14.873206207994372,
+          "final_soft_prompt": 4.376666969619691,
+          "final_embed_prep": 0.230583013035357,
+          "gpt2_generate": 858.0008749850094
+        },
+        "total_ms": 2080.6286247097887
+      },
+      {
+        "prompt": "Stomach Acid Nlm 5 out of 5 based on 606 ratings.\nPush the short, powerful breathes out through your nose. Stomach Acid Nlm this",
+        "prompt_token_len": 36,
+        "generation": "fits the muscle which lies between our small intestine and diaphragm, a narrow section of bone. To obtain this technique there is much study. Some people may be able to attain it while others are doomed to never achieve perfection until they can have great talent.\nAs important as digestive health is also about correct nutrition",
+        "timings": {
+          "noise_schedule": 15.727498976048082,
+          "soft_prompt_generator": 205.21537499735132,
+          "lm_embedding": 15.329417248722166,
+          "gpt2_forward": 896.5079569024965,
+          "extract_diffusion_hidden": 35.65016487846151,
+          "concat_for_scorenet": 6.767332321032882,
+          "score_net_head": 208.33937084535137,
+          "v_to_x0_eps": 9.59529186366126,
+          "ddpm_step": 15.288834809325635,
+          "final_soft_prompt": 4.496374982409179,
+          "final_embed_prep": 2.868750016205013,
+          "gpt2_generate": 882.6582919573411
+        },
+        "total_ms": 2298.444659798406
+      },
+      {
+        "prompt": "Traditional French classics are prepared to perfection and then served in the wonderful surroundings of",
+        "prompt_token_len": 15,
+        "generation": " perpetual Bistro Corney. The food is really tasty, not too heavy and all made with love by the owners. They are serving delicious soups, breads etc in seasonal dishes and their desserts are divine.\nThis was my favorite place to get a home-made croissant and I could have done",
+        "timings": {
+          "noise_schedule": 16.18358609266579,
+          "soft_prompt_generator": 206.85042202239856,
+          "lm_embedding": 11.714246065821499,
+          "gpt2_forward": 715.0611289544031,
+          "extract_diffusion_hidden": 35.65095621161163,
+          "concat_for_scorenet": 6.659751059487462,
+          "score_net_head": 211.7558298050426,
+          "v_to_x0_eps": 10.055997991003096,
+          "ddpm_step": 15.712500899098814,
+          "final_soft_prompt": 4.151583998464048,
+          "final_embed_prep": 3.0178329907357693,
+          "gpt2_generate": 879.909791983664
+        },
+        "total_ms": 2116.7236280743964
+      },
+      {
+        "prompt": "OMG I AM SUCH A FAN and I have the new book the 13th and its right next to me!\nI\u2019ve ordered it and am getting it tomorrow! SQUEEEEE!\nL CANT WAIT TO HOLD THIS BOOK AT THE LIABRY!!!!!!!!!!!!!!!!\n",
+        "prompt_token_len": 61,
+        "generation": " had to go read this yesterday. it\u2019s really cool!!!!\nI am soooooo excited for the book and am actually very eager. I\u2019m gonna try and get a copy when i can because my mom is getting it tomorrow! Can you imagine that?? XD And its called AFTER LAMB",
+        "timings": {
+          "noise_schedule": 15.930707973893732,
+          "soft_prompt_generator": 206.53446193318814,
+          "lm_embedding": 9.843289910349995,
+          "gpt2_forward": 1089.3748779781163,
+          "extract_diffusion_hidden": 37.55004424601793,
+          "concat_for_scorenet": 6.918754137586802,
+          "score_net_head": 212.98207802465186,
+          "v_to_x0_eps": 9.41278989193961,
+          "ddpm_step": 15.49408002756536,
+          "final_soft_prompt": 4.138165968470275,
+          "final_embed_prep": 0.18637499306350946,
+          "gpt2_generate": 880.2079170127399
+        },
+        "total_ms": 2488.5735420975834
+      },
+      {
+        "prompt": "Over the past few weeks, a small group of people has been meeting at the Peace Pole after the 9:30 Sunday mass",
+        "prompt_token_len": 25,
+        "generation": " effectively sending out a constant wave of love and thanks. It\u2019s always nice to get new voices from around the world \u2014 they feel like strangers in my life, but yet I know them as people who live here on the shores of St. Helens.\nWhat happens when people get involved? What happens when",
+        "timings": {
+          "noise_schedule": 15.912544156890363,
+          "soft_prompt_generator": 210.4234989383258,
+          "lm_embedding": 9.42649896023795,
+          "gpt2_forward": 788.9536187285557,
+          "extract_diffusion_hidden": 35.53049504989758,
+          "concat_for_scorenet": 6.509457132779062,
+          "score_net_head": 212.25833130301908,
+          "v_to_x0_eps": 9.679999260697514,
+          "ddpm_step": 15.371334971860051,
+          "final_soft_prompt": 4.282458976376802,
+          "final_embed_prep": 0.26229198556393385,
+          "gpt2_generate": 873.6051250016317
+        },
+        "total_ms": 2182.2156544658355
+      },
+      {
+        "prompt": "COM. FIGLETS, Font Files for ASCII Art \"Figlets\" NFOS, Information Files from Various Programs and Compilations Excellent IBM ASCII Art of The Pits BBS. Their files are in the Piracy section. Excellent IBM ASCII Art of The Pits BBS Collection of ASCII Art, including Teddy",
+        "prompt_token_len": 64,
+        "generation": " when talking terminals. Also a collection of breakfast related messages and speech patterns.\n- Ted Masters: \"The BBS and Beyond.\" A complete history of the MOS Microphone and Amp (and other electronics).\nPowered by Sidelines RPG for Mac. Unauthorised usage of the Amiga emulator. P",
+        "timings": {
+          "noise_schedule": 16.338708985131234,
+          "soft_prompt_generator": 205.07771224947646,
+          "lm_embedding": 10.247871920000762,
+          "gpt2_forward": 1089.5622898824513,
+          "extract_diffusion_hidden": 36.44400188932195,
+          "concat_for_scorenet": 6.669581052847207,
+          "score_net_head": 209.2694160528481,
+          "v_to_x0_eps": 9.780913183931261,
+          "ddpm_step": 15.088337182532996,
+          "final_soft_prompt": 3.7642920506186783,
+          "final_embed_prep": 0.22229197202250361,
+          "gpt2_generate": 875.4375000135042
+        },
+        "total_ms": 2477.9029164346866
+      },
+      {
+        "prompt": "Spot 1 - Washington canal located in the Raritan River. Launch from the Sayreville public ramp, I believe free after Labor day.\nSpot 2 - Mullica river located just north of AC and right off the GSP",
+        "prompt_token_len": 47,
+        "generation": " bindsery ramp. It may be located on a private, non-intermittent road with a parking lot. The dam (80 feet deep) is just to the north east of I90/Route 98.\nSpot 3 - Narrow boat launch near the Raritan River and Watertown area at Point Pleasant",
+        "timings": {
+          "noise_schedule": 16.073126113042235,
+          "soft_prompt_generator": 209.43150104722008,
+          "lm_embedding": 10.859667032491416,
+          "gpt2_forward": 968.7744159018621,
+          "extract_diffusion_hidden": 36.270710988901556,
+          "concat_for_scorenet": 6.614582322072238,
+          "score_net_head": 212.5238801818341,
+          "v_to_x0_eps": 10.029538010712713,
+          "ddpm_step": 15.325500979088247,
+          "final_soft_prompt": 4.652375006116927,
+          "final_embed_prep": 0.20666595082730055,
+          "gpt2_generate": 880.8617089525796
+        },
+        "total_ms": 2371.6236724867485
+      },
+      {
+        "prompt": "By now the entire world knows about Ray Rice and what he did to his then fianc\u00e9e/now wife in that elevator. The public",
+        "prompt_token_len": 28,
+        "generation": " competed with one of the NFL\u2019s most famous athletes for many weeks as to why he did it, and more importantly what was his involvement in that story.\nThis situation is interesting because not everybody knows about it yet. The reason is just plain sad: Ray Rice had a less than stellar record at Virginia Tech",
+        "timings": {
+          "noise_schedule": 15.606785891577601,
+          "soft_prompt_generator": 207.25591608788818,
+          "lm_embedding": 9.87549702404067,
+          "gpt2_forward": 810.6026211171411,
+          "extract_diffusion_hidden": 36.57049802131951,
+          "concat_for_scorenet": 6.483581033535302,
+          "score_net_head": 210.37642285227776,
+          "v_to_x0_eps": 9.754002036061138,
+          "ddpm_step": 15.16779203666374,
+          "final_soft_prompt": 4.390667018014938,
+          "final_embed_prep": 2.9697910067625344,
+          "gpt2_generate": 886.7207079892978
+        },
+        "total_ms": 2215.7742821145803
+      },
+      {
+        "prompt": "computer desk with drawers simple small computer desk long wide office with drawers table.\nergocraft ashton l shaped desk t shaped de t shaped for two people l kidney writing partners bush syndicate collection t shaped de.\nrotating desk organizer rotating",
+        "prompt_token_len": 52,
+        "generation": " and room light adjustable office desk with drawers my computer desk computers desk with table wood workdesk computer desks desk ideas.\nelectronics desk set corner unit for laptop wireless computer keyboard storage cabinet bookcase shelving systems furniture metal desks small computer desks with shelves wall mounted.\nlow profile mechanical laptop desk free standing laptop",
+        "timings": {
+          "noise_schedule": 15.971000131685287,
+          "soft_prompt_generator": 207.31933397473767,
+          "lm_embedding": 11.69174985261634,
+          "gpt2_forward": 997.1068340819329,
+          "extract_diffusion_hidden": 37.851379078347236,
+          "concat_for_scorenet": 6.740540964528918,
+          "score_net_head": 210.4937097756192,
+          "v_to_x0_eps": 9.528457128908485,
+          "ddpm_step": 15.316251723561436,
+          "final_soft_prompt": 4.3583750375546515,
+          "final_embed_prep": 3.125874965917319,
+          "gpt2_generate": 881.3732500420883
+        },
+        "total_ms": 2400.876756757498
+      },
+      {
+        "prompt": "My name is David Goldklang. I am a designer, musician, mixologist, and card/game/puzzle enthusiast. I have previously",
+        "prompt_token_len": 30,
+        "generation": " Newsgator and Java game programmers on staff, but that\u2019s a slightly different story.\nMy main interests have been in computer programming, open source software development tools (both Python and C/C++), and building beautiful games. In recent years my passion for the human body has grown to include music (",
+        "timings": {
+          "noise_schedule": 16.15516620222479,
+          "soft_prompt_generator": 211.49866719497368,
+          "lm_embedding": 12.153458083048463,
+          "gpt2_forward": 815.03453705227,
+          "extract_diffusion_hidden": 36.113331851083785,
+          "concat_for_scorenet": 6.6606251639314,
+          "score_net_head": 212.57470600539818,
+          "v_to_x0_eps": 10.05350291961804,
+          "ddpm_step": 15.726415032986552,
+          "final_soft_prompt": 4.303707974031568,
+          "final_embed_prep": 0.21404196741059422,
+          "gpt2_generate": 868.7729579978622
+        },
+        "total_ms": 2209.2611174448393
+      },
+      {
+        "prompt": "Bagpipes and kilts, haggis and whiskey, castles and Loughs, shortbread and cream teas: These are probably what come to mind when you think of this Celtic nation. And they are certainly all there!\nAfter a 1\u00bd hour ferry from Belfast we arrived in St",
+        "prompt_token_len": 62,
+        "generation": "ctuary, Moray.\nThis is why we visited: The pretty heathland and lochs with their red sandstone rocks. A breath of fresh air away from the high-key, overblown holiday houses on our other side of the country. It was a perfect reason to take a restful look at",
+        "timings": {
+          "noise_schedule": 15.892921888735145,
+          "soft_prompt_generator": 205.23491117637604,
+          "lm_embedding": 12.74266984546557,
+          "gpt2_forward": 1100.628662854433,
+          "extract_diffusion_hidden": 37.41125081432983,
+          "concat_for_scorenet": 6.856457097455859,
+          "score_net_head": 214.87566595897079,
+          "v_to_x0_eps": 10.827042744494975,
+          "ddpm_step": 15.277791360858828,
+          "final_soft_prompt": 4.218749993015081,
+          "final_embed_prep": 3.0237080063670874,
+          "gpt2_generate": 892.2269589966163
+        },
+        "total_ms": 2519.2167907371186
+      },
+      {
+        "prompt": "I had the amazing opportunity to have great writers sharing their experience on this very blog. You can find all guest posts on this page. And remember, if",
+        "prompt_token_len": 31,
+        "generation": " Curry Books can send me an idea for a post here I'm game. If you want to read the books in their own posts or if you just love them and would like me to write about it, please join us at Hybrid Blog Posting Month on May 27th!\nI'll be working with three authors so",
+        "timings": {
+          "noise_schedule": 15.882834966760129,
+          "soft_prompt_generator": 210.34954191418365,
+          "lm_embedding": 10.051753022707999,
+          "gpt2_forward": 815.9443740732968,
+          "extract_diffusion_hidden": 35.52450187271461,
+          "concat_for_scorenet": 6.576250190846622,
+          "score_net_head": 209.44441814208403,
+          "v_to_x0_eps": 9.964128315914422,
+          "ddpm_step": 15.320209204219282,
+          "final_soft_prompt": 4.29504195926711,
+          "final_embed_prep": 3.0189159442670643,
+          "gpt2_generate": 896.3926249998622
+        },
+        "total_ms": 2232.764594606124
+      },
+      {
+        "prompt": "Coffee mate Original Lite Powdered Creamer Canister oz This format creates an organized beverage station. Available in four popular flavors that are cholesterol free, gluten free, lactose free, and contain Kosher dairy..This item Nestle Coffee mate Coffee Creamer, Original Lite, oz powder creamer,",
+        "prompt_token_len": 63,
+        "generation": " and is available in three flavors: Original, Sparkling Citrus Light and Espresso, all of which are at a fraction of the price. The cream flavor has an earthy sweetness, with hints of caramel notes or vanilla that give it its holiday taste. It's perfect for coffee lite moments such as chai",
+        "timings": {
+          "noise_schedule": 15.862418396864086,
+          "soft_prompt_generator": 207.41075283149257,
+          "lm_embedding": 9.695956716313958,
+          "gpt2_forward": 1098.6264540115371,
+          "extract_diffusion_hidden": 37.443836976308376,
+          "concat_for_scorenet": 6.756163027603179,
+          "score_net_head": 215.23170889122412,
+          "v_to_x0_eps": 9.529994742479175,
+          "ddpm_step": 15.187623968813568,
+          "final_soft_prompt": 4.4560409733094275,
+          "final_embed_prep": 0.25283399736508727,
+          "gpt2_generate": 890.7535419566557
+        },
+        "total_ms": 2511.2073264899664
+      },
+      {
+        "prompt": "It is set to get cooler across Somerset for the bank holiday weekend, according to the Met Office",
+        "prompt_token_len": 19,
+        "generation": "LOG\nThe next week looks to be another calm evening and then a few strong wintry nights in the weekend, forecasters say.\nIt will start out cooler than normal with highs only hitting the mid-teens or early twenties before reaching into double figures by Monday as well as the night before.\nThere",
+        "timings": {
+          "noise_schedule": 15.716166060883552,
+          "soft_prompt_generator": 212.07229094579816,
+          "lm_embedding": 10.250459134113044,
+          "gpt2_forward": 734.415793849621,
+          "extract_diffusion_hidden": 35.697374027222395,
+          "concat_for_scorenet": 6.517499161418527,
+          "score_net_head": 207.85662397975102,
+          "v_to_x0_eps": 9.718455781694502,
+          "ddpm_step": 15.330499794799834,
+          "final_soft_prompt": 4.478457965888083,
+          "final_embed_prep": 0.19441702170297503,
+          "gpt2_generate": 875.8902499685064
+        },
+        "total_ms": 2128.1382876913995
+      },
+      {
+        "prompt": "Each thumbnail image is a link to the full sized image which will appear in a new window",
+        "prompt_token_len": 18,
+        "generation": "Across from the word Spooky.\nCover Image and title pages have been created using an image that may not be in this book, it could just be a different resolution of your screen. The actual page is blank. You can also try a search within the images below for the cover picture or you can use the page",
+        "timings": {
+          "noise_schedule": 15.995663881767541,
+          "soft_prompt_generator": 207.73583295522258,
+          "lm_embedding": 10.35237213363871,
+          "gpt2_forward": 715.1976234745234,
+          "extract_diffusion_hidden": 35.01028980826959,
+          "concat_for_scorenet": 6.515958928503096,
+          "score_net_head": 211.2527511199005,
+          "v_to_x0_eps": 9.581496240571141,
+          "ddpm_step": 15.513166086748242,
+          "final_soft_prompt": 4.289249947760254,
+          "final_embed_prep": 0.19291701028123498,
+          "gpt2_generate": 861.7784170201048
+        },
+        "total_ms": 2093.415738607291
+      },
+      {
+        "prompt": "Why Let the Ladies Have All the Fun?\n\ufeff*Underwear not eligible",
+        "prompt_token_len": 18,
+        "generation": " Captain Underwear Women's Heritage Jersey 3.5-oz*\nUnder the white trim of this lingerie is a red and blue line that says \u201cHendrix\u201d embossed with \"Lover\" over it, revealing three undies from our underwear collection for women who just love wearing panties under",
+        "timings": {
+          "noise_schedule": 16.03529293788597,
+          "soft_prompt_generator": 210.05563042126596,
+          "lm_embedding": 10.322412068489939,
+          "gpt2_forward": 715.4820819268934,
+          "extract_diffusion_hidden": 37.70408488344401,
+          "concat_for_scorenet": 6.986290973145515,
+          "score_net_head": 214.5749979536049,
+          "v_to_x0_eps": 9.837168967351317,
+          "ddpm_step": 15.824993199203163,
+          "final_soft_prompt": 4.3897919822484255,
+          "final_embed_prep": 0.2056249650195241,
+          "gpt2_generate": 854.5698330271989
+        },
+        "total_ms": 2095.988203305751
+      },
+      {
+        "prompt": "Music, silent auction and drinks. What more do you need to unwind from a long week? How about the newest addition to the libation scene? Held at the recently opened Begerac bar, enjoy happy hour cocktails while you support and learn about what Larkin",
+        "prompt_token_len": 54,
+        "generation": " under the lights is doing to raise money for another fun night of music and charity.\nYou will definitely have something to say with this event! Join us at all four events during 2016 (July-Aug), starting July 24, 2016. Tickets available here. See full program HERE!\nA year since our very first",
+        "timings": {
+          "noise_schedule": 16.306001984048635,
+          "soft_prompt_generator": 207.8925828100182,
+          "lm_embedding": 9.922708093654364,
+          "gpt2_forward": 988.0111240199767,
+          "extract_diffusion_hidden": 36.572747165337205,
+          "concat_for_scorenet": 6.74299628008157,
+          "score_net_head": 211.8915449245833,
+          "v_to_x0_eps": 9.716334054246545,
+          "ddpm_step": 15.529166674241424,
+          "final_soft_prompt": 4.3055410496890545,
+          "final_embed_prep": 0.20229100482538342,
+          "gpt2_generate": 915.1412920327857
+        },
+        "total_ms": 2422.234330093488
+      },
+      {
+        "prompt": "Installing aftermarket racing harnesses into your 2014+ Polaris RZR, General & Can Am Commander or Maverick and need to bypass the OEM safety feature of the seat belt clicked in? UTV INC has a simple plug in",
+        "prompt_token_len": 47,
+        "generation": " skirt with quick connector for 2014+ RZR seat belts. Just a few seconds to install! With the UTV INC Cordless Seat Belt Clip you don\u2019t have to worry about replacing that old bolt or splintering the harness because its easy to pull out and replace.\nThe Polaris RZR",
+        "timings": {
+          "noise_schedule": 15.771873877383769,
+          "soft_prompt_generator": 208.0586648080498,
+          "lm_embedding": 9.716584871057421,
+          "gpt2_forward": 977.1015851874836,
+          "extract_diffusion_hidden": 36.93466604454443,
+          "concat_for_scorenet": 6.866998679470271,
+          "score_net_head": 211.60254126880318,
+          "v_to_x0_eps": 9.43221285706386,
+          "ddpm_step": 15.07837139070034,
+          "final_soft_prompt": 4.4361670152284205,
+          "final_embed_prep": 0.24904200108721852,
+          "gpt2_generate": 876.8397500389256
+        },
+        "total_ms": 2372.088458039798
+      },
+      {
+        "prompt": "CHARLESTON, SC (WCSC) - A fifth-grade Walterboro student was being treated in Charleston for injuries she received during a fight at her school.\nThe Forest Hills Elementary School student, whose name was not released, was airlifted to MUSC in Charleston,",
+        "prompt_token_len": 58,
+        "generation": " Kirby Harris said Saturday.\nThe student was being evaluated by a MUSC athletic trainer, Harris said.\nHarris told WCSC that the fight happened at about 1 p.m. on Friday in the school's small classroom room when student Randal Suddath Jr. confronted his former teacher and co-teacher",
+        "timings": {
+          "noise_schedule": 15.868543065153062,
+          "soft_prompt_generator": 207.01499714050442,
+          "lm_embedding": 11.96599891409278,
+          "gpt2_forward": 1102.6058737188578,
+          "extract_diffusion_hidden": 37.92050021002069,
+          "concat_for_scorenet": 6.831452948972583,
+          "score_net_head": 213.06829067179933,
+          "v_to_x0_eps": 9.598789096344262,
+          "ddpm_step": 15.383414807729423,
+          "final_soft_prompt": 4.283458983991295,
+          "final_embed_prep": 3.091750026214868,
+          "gpt2_generate": 912.1899160090834
+        },
+        "total_ms": 2539.822985592764
+      },
+      {
+        "prompt": "Following on from the last post, all about honouring the seasons, what kept coming up for me in conversation in the last week was letting go, which is the key to this autumn season. During these conversations we kept coming back to why do we find ourselves holding on to",
+        "prompt_token_len": 55,
+        "generation": "KK? feel feelings of melancholy and happiness. As I did, it made sense that we should let go a few things for the autumn season as well.\nWhen you are getting rid of anything at least partially in your home there is an emotional feeling. Fall brings us opportunities to be grateful for what was brought into our",
+        "timings": {
+          "noise_schedule": 15.764871030114591,
+          "soft_prompt_generator": 207.20679417718202,
+          "lm_embedding": 9.827621863223612,
+          "gpt2_forward": 990.2364989393391,
+          "extract_diffusion_hidden": 35.83020903170109,
+          "concat_for_scorenet": 6.546084827277809,
+          "score_net_head": 210.86574776563793,
+          "v_to_x0_eps": 9.553794225212187,
+          "ddpm_step": 15.608333866111934,
+          "final_soft_prompt": 3.9535409887321293,
+          "final_embed_prep": 0.20470895105972886,
+          "gpt2_generate": 875.3339580143802
+        },
+        "total_ms": 2380.9321636799723
+      },
+      {
+        "prompt": "You must have seen this question: Is Survey Junkie a scam or legit?!? quite a few times while browsing on the internet or must have read about survey junkie reviews, and must have wondered what actually is survey junkie?!?\nSurvey junkie is an online based free reward program",
+        "prompt_token_len": 60,
+        "generation": " Leighit. It is a money making way for people to earn cash through surveys, and as you can see it all depends on the validity of the customer survey information provided by the user. But when your input on valid survey details or not complete in order for Survey junkie to payout its clients, then there will be",
+        "timings": {
+          "noise_schedule": 15.788206015713513,
+          "soft_prompt_generator": 205.77691338257864,
+          "lm_embedding": 14.188582194037735,
+          "gpt2_forward": 1096.0285438341089,
+          "extract_diffusion_hidden": 35.695545200724155,
+          "concat_for_scorenet": 6.558172171935439,
+          "score_net_head": 210.33237624214962,
+          "v_to_x0_eps": 9.293375129345804,
+          "ddpm_step": 15.067165717482567,
+          "final_soft_prompt": 4.18545794673264,
+          "final_embed_prep": 0.19604095723479986,
+          "gpt2_generate": 888.1007080199197
+        },
+        "total_ms": 2501.2110868119635
+      },
+      {
+        "prompt": "Inservice training that promotes best",
+        "prompt_token_len": 6,
+        "generation": " Decisions on a consistent basis is essential to the success of any human services degree program. Our first annual \u201cContinuing Professional Development\u201d course has proven this to be an excellent resource for current and future students looking to increase their level of satisfaction in our field. This year, more than 2/3rds",
+        "timings": {
+          "noise_schedule": 15.965913829859346,
+          "soft_prompt_generator": 206.76779182394966,
+          "lm_embedding": 9.766875999048352,
+          "gpt2_forward": 668.3560829260387,
+          "extract_diffusion_hidden": 35.05991032579914,
+          "concat_for_scorenet": 6.666791974566877,
+          "score_net_head": 209.06566514167935,
+          "v_to_x0_eps": 9.906788938678801,
+          "ddpm_step": 15.497661894187331,
+          "final_soft_prompt": 4.648875037673861,
+          "final_embed_prep": 0.21454202942550182,
+          "gpt2_generate": 895.7172500086017
+        },
+        "total_ms": 2077.6341499295086
+      },
+      {
+        "prompt": "but nothing has plotted in the simulated graph.\n",
+        "prompt_token_len": 10,
+        "generation": "atin the meantime, my score on any given scale of\nstatistical significance has been consistently\nvery low or above - every time I've asked a question.\nWhat gives? The reason why these questions are always so wrong is that the test banks are not very clever in giving you precise instructions about how to write your",
+        "timings": {
+          "noise_schedule": 15.746711054816842,
+          "soft_prompt_generator": 213.96838105283678,
+          "lm_embedding": 10.085586865898222,
+          "gpt2_forward": 749.8409987892956,
+          "extract_diffusion_hidden": 35.87392391636968,
+          "concat_for_scorenet": 6.525205448269844,
+          "score_net_head": 215.0003740680404,
+          "v_to_x0_eps": 9.61953989462927,
+          "ddpm_step": 15.113497152924538,
+          "final_soft_prompt": 4.261499969288707,
+          "final_embed_prep": 2.990500011947006,
+          "gpt2_generate": 870.6974999513477
+        },
+        "total_ms": 2149.7237181756645
+      },
+      {
+        "prompt": "With the high quality ICT products and suppliers, Computex.biz and Alibaba.com has established the \u201cIn",
+        "prompt_token_len": 24,
+        "generation": " Owl 2018\u201d with a starting of the pro-mix trade in the AI realm.\nIn 2017, Alibaba.com reported annual sales reached US$ 21 million for ICT products alone \u2013 more than a quarter of the total worldwide. In addition to the growth in revenue share of China and Taiwan, this year",
+        "timings": {
+          "noise_schedule": 15.47037297859788,
+          "soft_prompt_generator": 209.05029313871637,
+          "lm_embedding": 9.858792123850435,
+          "gpt2_forward": 717.2956688445993,
+          "extract_diffusion_hidden": 33.59745588386431,
+          "concat_for_scorenet": 6.4756241627037525,
+          "score_net_head": 205.15645813429728,
+          "v_to_x0_eps": 9.169085940811783,
+          "ddpm_step": 15.02699771663174,
+          "final_soft_prompt": 4.113540984690189,
+          "final_embed_prep": 0.18800003454089165,
+          "gpt2_generate": 866.7674580356106
+        },
+        "total_ms": 2092.1697479789145
+      },
+      {
+        "prompt": "MapleMe is a wide portal for all types of classified",
+        "prompt_token_len": 12,
+        "generation": "course of action, real estate for sale, new homes, new properties for sale in the Maplewood community of West Kelowna. View and participate on the forums with active buyers, sellers, agents and all related business people. All you need is an internet connected device and a few minutes of your time! This will",
+        "timings": {
+          "noise_schedule": 15.712500142399222,
+          "soft_prompt_generator": 207.9044170677662,
+          "lm_embedding": 12.282334093470126,
+          "gpt2_forward": 727.3657059995458,
+          "extract_diffusion_hidden": 34.55724712694064,
+          "concat_for_scorenet": 6.601171044167131,
+          "score_net_head": 206.50041691260412,
+          "v_to_x0_eps": 9.481002110987902,
+          "ddpm_step": 15.014750126283616,
+          "final_soft_prompt": 4.318833991419524,
+          "final_embed_prep": 2.388250024523586,
+          "gpt2_generate": 870.841666997876
+        },
+        "total_ms": 2112.968295637984
+      },
+      {
+        "prompt": "Terms are words or phrases that designate classes.\nSingular terms designate individuals, e.g., proper nouns (\u201cThe Taj Mahal\u201d), or proper names (\u201cPrincess",
+        "prompt_token_len": 42,
+        "generation": "=~=~)\u201d.\nSingles are usually referred to by their first initial or a part of the name, such as \u201cJeannie Tata. Jeannie is in charge of the company XYZ and her husband sells the product XYZ.\u201d The plural (the feminine form, not the masculine singular)",
+        "timings": {
+          "noise_schedule": 16.229829809162766,
+          "soft_prompt_generator": 213.11616792809218,
+          "lm_embedding": 10.35687595140189,
+          "gpt2_forward": 971.6482501826249,
+          "extract_diffusion_hidden": 39.444540918339044,
+          "concat_for_scorenet": 6.871040095575154,
+          "score_net_head": 215.46916593797505,
+          "v_to_x0_eps": 9.876711119432002,
+          "ddpm_step": 16.010957828257233,
+          "final_soft_prompt": 4.5238330494612455,
+          "final_embed_prep": 0.2027080045081675,
+          "gpt2_generate": 875.3349580219947
+        },
+        "total_ms": 2379.0850388468243
+      },
+      {
+        "prompt": "Celebrate their latest achievement with Tasty Nibbles, a gourmet selection of savoury treats with",
+        "prompt_token_len": 21,
+        "generation": "365% discount on selected wine and Champagne\nNebrewry bag, a bag of delicious snacks with champagne.\n- 1 x bag - savoury delights containing biscuits or crackers. Includes a choice of: Pepperidge Farm Choc Cheesemakes, Baked Nuts or Crisps,",
+        "timings": {
+          "noise_schedule": 15.643872262444347,
+          "soft_prompt_generator": 207.17770577175543,
+          "lm_embedding": 11.779125954490155,
+          "gpt2_forward": 733.7089138454758,
+          "extract_diffusion_hidden": 34.7455371520482,
+          "concat_for_scorenet": 6.471126805990934,
+          "score_net_head": 206.9243307923898,
+          "v_to_x0_eps": 9.60379367461428,
+          "ddpm_step": 15.248542884364724,
+          "final_soft_prompt": 4.342957981862128,
+          "final_embed_prep": 2.926292014308274,
+          "gpt2_generate": 867.1396669815294
+        },
+        "total_ms": 2115.7118661212735
+      },
+      {
+        "prompt": "Your item must be in its original",
+        "prompt_token_len": 7,
+        "generation": " Newsday kitchen appliance or home appliances condition to be eligible for a refund. You must also have a receipt showing your purchase date of the item, as proof that you purchased it in its original state and it has all relevant information listed on the tag.\nYou can return it within a limited period (eg one week)",
+        "timings": {
+          "noise_schedule": 17.042917374055833,
+          "soft_prompt_generator": 208.13187689054757,
+          "lm_embedding": 10.261794202961028,
+          "gpt2_forward": 1026.1030022520572,
+          "extract_diffusion_hidden": 35.83791997516528,
+          "concat_for_scorenet": 6.501624069642276,
+          "score_net_head": 208.14796100603417,
+          "v_to_x0_eps": 10.533918568398803,
+          "ddpm_step": 16.05407864553854,
+          "final_soft_prompt": 4.2663749773055315,
+          "final_embed_prep": 3.206583030987531,
+          "gpt2_generate": 872.2082080203108
+        },
+        "total_ms": 2418.2962590130046
+      }
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "hardware": {
+    "name": "Apple M4 Max (40-core GPU)",
+    "peak_fp32_gflops": 14000,
+    "mem_bw_gbps": 546,
+    "ridge_point": 25.641025641025642
+  },
+  "results": [
+    {
+      "name": "RMSNorm+FiLM (JIT)",
+      "time_us": 26.754291029646993,
+      "flops": 57344,
+      "bytes": 77824,
+      "arithmetic_intensity": 0.7368421052631579,
+      "achieved_gflops": 2.1433571136852745,
+      "achieved_bw_gbps": 2.9088417971443006,
+      "roofline_ceiling_gflops": 402.31578947368416,
+      "efficiency_pct": 0.5327549079018867,
+      "bound": "memory"
+    },
+    {
+      "name": "RMSNorm+FiLM (Metal)",
+      "time_us": 12.661874992772937,
+      "flops": 57344,
+      "bytes": 77824,
+      "arithmetic_intensity": 0.7368421052631579,
+      "achieved_gflops": 4.528871121593796,
+      "achieved_bw_gbps": 6.146325093591579,
+      "roofline_ceiling_gflops": 402.31578947368416,
+      "efficiency_pct": 1.1257005665918647,
+      "bound": "memory"
+    },
+    {
+      "name": "Tiny Attention (JIT)",
+      "time_us": 94.89324991591275,
+      "flops": 300032,
+      "bytes": 131584,
+      "arithmetic_intensity": 2.280155642023346,
+      "achieved_gflops": 3.1617844289858947,
+      "achieved_bw_gbps": 1.386652898036476,
+      "roofline_ceiling_gflops": 1244.964980544747,
+      "efficiency_pct": 0.25396573224111285,
+      "bound": "memory"
+    },
+    {
+      "name": "Tiny Attention (Metal)",
+      "time_us": 40.37200007587671,
+      "flops": 300032,
+      "bytes": 131584,
+      "arithmetic_intensity": 2.280155642023346,
+      "achieved_gflops": 7.431685312496486,
+      "achieved_bw_gbps": 3.259288609746753,
+      "roofline_ceiling_gflops": 1244.964980544747,
+      "efficiency_pct": 0.5969393058144236,
+      "bound": "memory"
+    },
+    {
+      "name": "DDPM Step (JIT)",
+      "time_us": 41.129833087325096,
+      "flops": 15360,
+      "bytes": 12296,
+      "arithmetic_intensity": 1.2491867273910215,
+      "achieved_gflops": 0.3734515520009115,
+      "achieved_bw_gbps": 0.29895574761739635,
+      "roofline_ceiling_gflops": 682.0559531554977,
+      "efficiency_pct": 0.05475379992992607,
+      "bound": "memory"
+    },
+    {
+      "name": "DDPM Step (Metal)",
+      "time_us": 107.32316691428423,
+      "flops": 15360,
+      "bytes": 12296,
+      "arithmetic_intensity": 1.2491867273910215,
+      "achieved_gflops": 0.14311914604856535,
+      "achieved_bw_gbps": 0.11456985806075257,
+      "roofline_ceiling_gflops": 682.0559531554977,
+      "efficiency_pct": 0.020983490487317322,
+      "bound": "memory"
+    },
+    {
+      "name": "GPT-2 decode-8 (KV cached, prefix=64)",
+      "time_us": 95559.60062425584,
+      "flops": 11430789120,
+      "bytes": 2857697280,
+      "arithmetic_intensity": 4.0,
+      "achieved_gflops": 119.61947355709782,
+      "achieved_bw_gbps": 29.904868389274455,
+      "roofline_ceiling_gflops": 2184.0,
+      "efficiency_pct": 5.477082122577738,
+      "bound": "memory"
+    },
+    {
+      "name": "SoftPromptGenerator (6-layer)",
+      "time_us": 2774.8150839470327,
+      "flops": 1220542464,
+      "bytes": 302034944,
+      "arithmetic_intensity": 4.041063751881636,
+      "achieved_gflops": 439.86443315128616,
+      "achieved_bw_gbps": 108.84867454676322,
+      "roofline_ceiling_gflops": 2206.4208085273735,
+      "efficiency_pct": 19.935654678894362,
+      "bound": "memory"
+    }
+  ]
+}

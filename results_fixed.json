@@ -1,0 +1,236 @@
+{
+  "config": {
+    "device": "mps",
+    "sampling_timesteps": 50,
+    "sampler": "ddpm",
+    "num_prompts": 4,
+    "model_path": "checkpoints/star-ldm"
+  },
+  "aggregate": {
+    "noise_schedule": {
+      "mean": 15.411155007313937,
+      "std": 0.24555446362939262,
+      "median": 15.28691645944491,
+      "p5": 15.240079385694116,
+      "p95": 15.756164595950395,
+      "p99": 15.81766412826255,
+      "min": 15.237748099025339,
+      "max": 15.833039011340588,
+      "n": 4
+    },
+    "soft_prompt_generator": {
+      "mean": 207.36602050601505,
+      "std": 3.373892209024925,
+      "median": 208.27171008568257,
+      "p5": 202.766400956898,
+      "p95": 210.69767464359757,
+      "p99": 210.9094989922596,
+      "min": 201.95820677326992,
+      "max": 210.96245507942513,
+      "n": 4
+    },
+    "lm_embedding": {
+      "mean": 12.460094396374188,
+      "std": 0.367807596011797,
+      "median": 12.485816405387595,
+      "p5": 11.997316777706146,
+      "p95": 12.88686120242346,
+      "p99": 12.92237049958203,
+      "min": 11.93749695084989,
+      "max": 12.931247823871672,
+      "n": 4
+    },
+    "gpt2_forward": {
+      "mean": 830.4050631850259,
+      "std": 124.3765166806115,
+      "median": 804.7839591163211,
+      "p5": 700.9162598697003,
+      "p95": 995.7634121965383,
+      "p99": 1015.5744174931897,
+      "min": 691.5251656901091,
+      "max": 1020.5271688173525,
+      "n": 4
+    },
+    "extract_diffusion_hidden": {
+      "mean": 36.61728202132508,
+      "std": 0.670249105324726,
+      "median": 36.52110492112115,
+      "p5": 35.87667651590891,
+      "p95": 37.492535467026755,
+      "p99": 37.61527588008903,
+      "min": 35.78095725970343,
+      "max": 37.6459609833546,
+      "n": 4
+    },
+    "concat_for_scorenet": {
+      "mean": 6.54893736646045,
+      "std": 0.01262886182977573,
+      "median": 6.544729840243235,
+      "p5": 6.537503047729842,
+      "p95": 6.566262221895158,
+      "p99": 6.568552157841623,
+      "min": 6.5371651435270905,
+      "max": 6.569124641828239,
+      "n": 4
+    },
+    "score_net_head": {
+      "mean": 208.75481015536934,
+      "std": 1.7440087171236542,
+      "median": 208.59276538249105,
+      "p5": 207.0034802047303,
+      "p95": 210.733002788038,
+      "p99": 210.81983322103042,
+      "min": 206.99216902721673,
+      "max": 210.84154082927853,
+      "n": 4
+    },
+    "v_to_x0_eps": {
+      "mean": 9.726301475893706,
+      "std": 0.10274788876402875,
+      "median": 9.699602494947612,
+      "p5": 9.624787321081385,
+      "p95": 9.865194204030558,
+      "p99": 9.88753947778605,
+      "min": 9.612875117454678,
+      "max": 9.893125796224922,
+      "n": 4
+    },
+    "ddpm_step": {
+      "mean": 14.937114290660247,
+      "std": 0.14253441721161822,
+      "median": 15.011478506494313,
+      "p5": 14.738309237873182,
+      "p95": 15.03180944127962,
+      "p99": 15.034094124566764,
+      "min": 14.690834854263812,
+      "max": 15.03466529538855,
+      "n": 4
+    },
+    "final_soft_prompt": {
+      "mean": 4.241864487994462,
+      "std": 0.10773182930741637,
+      "median": 4.229416488669813,
+      "p5": 4.120812439941801,
+      "p95": 4.380343735101633,
+      "p99": 4.400368737406097,
+      "min": 4.10324998665601,
+      "max": 4.4053749879822135,
+      "n": 4
+    },
+    "final_embed_prep": {
+      "mean": 1.8072917591780424,
+      "std": 0.9305452489770101,
+      "median": 2.22183350706473,
+      "p5": 0.510814314475283,
+      "p95": 2.5234107568394393,
+      "p99": 2.5610157602932304,
+      "min": 0.2150830114260316,
+      "max": 2.570417011156678,
+      "n": 4
+    },
+    "gpt2_generate": {
+      "mean": 997.6913959981175,
+      "std": 197.14573452600752,
+      "median": 885.7767500157934,
+      "p5": 880.1537151564844,
+      "p95": 1271.9095812150042,
+      "p99": 1325.634916209965,
+      "min": 880.1458340021782,
+      "max": 1339.0662499587052,
+      "n": 4
+    },
+    "total": {
+      "mean": 2345.967330649728,
+      "std": 309.52140771926383,
+      "median": 2203.4452901862096,
+      "p5": 2110.566935897805,
+      "p95": 2780.898582050577,
+      "p99": 2854.836747162044,
+      "min": 2103.6574537865818,
+      "max": 2873.321288439911,
+      "n": 4
+    }
+  },
+  "runs": [
+    {
+      "prompt": "The meaning of life is",
+      "prompt_token_len": 5,
+      "generation": "ITCHy memories, we hope you will share them with us and give some new meaning to your life.\n- Stephen Raskin (author of \u201cThe Science Of Mind\u201d) - Life is not science but what happens as a result. We are just going by nature. So let science have the right",
+      "timings": {
+        "noise_schedule": 15.833039011340588,
+        "soft_prompt_generator": 210.96245507942513,
+        "lm_embedding": 12.63533701421693,
+        "gpt2_forward": 691.5251656901091,
+        "extract_diffusion_hidden": 36.623124207835644,
+        "concat_for_scorenet": 6.539417838212103,
+        "score_net_head": 206.99216902721673,
+        "v_to_x0_eps": 9.706915181595832,
+        "ddpm_step": 15.007330744992942,
+        "final_soft_prompt": 4.220333008561283,
+        "final_embed_prep": 2.2570419823750854,
+        "gpt2_generate": 891.3551250007004
+      },
+      "total_ms": 2103.6574537865818
+    },
+    {
+      "prompt": "In the beginning, there was nothing but darkness and silence",
+      "prompt_token_len": 10,
+      "generation": " shaken by his departure and now, as I returned from the temple and heard him speak, he spoke a few words.\n\u201cI will once again be your sword!\u201d He whispered to me in my sleep. \u201cThis one is for you. Learn this new skill. Your son must come back from",
+      "timings": {
+        "noise_schedule": 15.237748099025339,
+        "soft_prompt_generator": 207.3461679974571,
+        "lm_embedding": 12.931247823871672,
+        "gpt2_forward": 855.4354580119252,
+        "extract_diffusion_hidden": 37.6459609833546,
+        "concat_for_scorenet": 6.569124641828239,
+        "score_net_head": 210.84154082927853,
+        "v_to_x0_eps": 9.692289808299392,
+        "ddpm_step": 15.03466529538855,
+        "final_soft_prompt": 4.10324998665601,
+        "final_embed_prep": 2.1866250317543745,
+        "gpt2_generate": 880.1458340021782
+      },
+      "total_ms": 2257.169912511017
+    },
+    {
+      "prompt": "The president of the United States announced today that the federal government will be implementing a new policy regarding",
+      "prompt_token_len": 20,
+      "generation": " NDPs and COVID-19 testing on the basis of a modified travel ban. This change will be applied to all non-profit facilities that have been approved in one or more counties for operations under the new mandate. Under this updated policy, businesses can apply to establish non-compliance programs with regard to Covid-",
+      "timings": {
+        "noise_schedule": 15.253290010150522,
+        "soft_prompt_generator": 209.19725217390805,
+        "lm_embedding": 12.336295796558261,
+        "gpt2_forward": 754.1324602207169,
+        "extract_diffusion_hidden": 35.78095725970343,
+        "concat_for_scorenet": 6.550041842274368,
+        "score_net_head": 207.06757687730715,
+        "v_to_x0_eps": 9.893125796224922,
+        "ddpm_step": 14.690834854263812,
+        "final_soft_prompt": 4.4053749879822135,
+        "final_embed_prep": 0.2150830114260316,
+        "gpt2_generate": 880.1983750308864
+      },
+      "total_ms": 2149.720667861402
+    },
+    {
+      "prompt": "Scientists at the research laboratory have been studying the effects of climate change on marine ecosystems for over a decade, and their latest findings suggest that coral reefs in the Pacific Ocean are experiencing unprecedented levels of bleaching due to rising water temperatures and increased ocean acidification",
+      "prompt_token_len": 50,
+      "generation": " wearer coral reefs. In this video we explain how the current climate could wreak havoc on our tropical reef ecosystems, and how the warming ocean currents can push those marine corals to the brink of extinction.\nThe research shows that climate change would result in accelerated bleaching processes which leads to rapid damage. The key to",
+      "timings": {
+        "noise_schedule": 15.320542908739299,
+        "soft_prompt_generator": 201.95820677326992,
+        "lm_embedding": 11.93749695084989,
+        "gpt2_forward": 1020.5271688173525,
+        "extract_diffusion_hidden": 36.419085634406656,
+        "concat_for_scorenet": 6.5371651435270905,
+        "score_net_head": 210.11795388767496,
+        "v_to_x0_eps": 9.612875117454678,
+        "ddpm_step": 15.015626267995685,
+        "final_soft_prompt": 4.238499968778342,
+        "final_embed_prep": 2.570417011156678,
+        "gpt2_generate": 1339.0662499587052
+      },
+      "total_ms": 2873.321288439911
+    }
+  ]
+}

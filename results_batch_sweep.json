@@ -1,0 +1,35 @@
+{
+  "sampling_timesteps": 50,
+  "device": "mps",
+  "config": "fused + KV-cache",
+  "results": {
+    "1": {
+      "batch_size": 1,
+      "mean_ms": 1339.1715415442984,
+      "std_ms": 4.213719686934188,
+      "per_sample_ms": 1339.1715415442984,
+      "throughput_samples_per_sec": 0.7467303246653715
+    },
+    "2": {
+      "batch_size": 2,
+      "mean_ms": 1925.7083609700203,
+      "std_ms": 26.643979662877108,
+      "per_sample_ms": 962.8541804850101,
+      "throughput_samples_per_sec": 1.0385788629969688
+    },
+    "4": {
+      "batch_size": 4,
+      "mean_ms": 2987.1983332559466,
+      "std_ms": 9.21156355037624,
+      "per_sample_ms": 746.7995833139867,
+      "throughput_samples_per_sec": 1.3390473459591594
+    },
+    "8": {
+      "batch_size": 8,
+      "mean_ms": 5895.309430314228,
+      "std_ms": 168.1219273922326,
+      "per_sample_ms": 736.9136787892785,
+      "throughput_samples_per_sec": 1.3570110431970301
+    }
+  }
+}
