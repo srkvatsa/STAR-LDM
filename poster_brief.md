@@ -2,6 +2,28 @@
 
 Make me a 40x30 inch landscape academic research poster. Cornell CS class project. Clean, modern, top-conference quality. Cornell red (#B31B1B) accent.
 
+## The course
+
+This is for CS 5220: Applied High-Performance and Parallel Computing at Cornell University, taught by Professor Giulia Guidi, Spring 2026. The course covers single-processor optimization, OpenMP, MPI, CUDA, Cerebras CSL, roofline analysis, and GPU programming. The final project is 30% of the grade (proposal 5%, poster 5%, final report 20%).
+
+Every project must incorporate three elements:
+1. Parallel programming (hands-on, central to the project)
+2. Performance optimization (SIMD, cache-friendly layouts, memory access tuning, arithmetic intensity)
+3. Performance analysis (scaling plots, runtime breakdowns, roofline analysis, communication modeling)
+
+The final report is evaluated on: (1) practical content, implementation and tuning effort, (2) experimental data and scaling/performance analysis, (3) theoretical content and creativity, (4) impact and timeliness. The majority of the report should focus on parallelism, not problem description.
+
+The poster session is a checkpoint. Professor Guidi's guidance for the poster:
+- ~25% introduction and background
+- ~50% what you have accomplished so far
+- ~25% future work (what you plan to do between poster session and final report deadline)
+- "A poster that's 1/2 or 2/3 problem introduction isn't a good poster"
+- Less text is preferred; figures and tables dominate
+
+Poster specs: 40x30 inches (landscape), glossy paper, PDF format. Printed at Mann Library on the CS 5220 department account.
+
+This is a solo project (approved by the instructor). I am building on my own research as a co-author on the STAR-LDM paper.
+
 ## What this project is
 
 I'm a co-author on STAR-LDM (COLM 2025), a language model that uses 50 steps of latent diffusion to plan what to say before generating text autoregressively with GPT-2 Large. It produces much better text (MAUVE 94.6 vs 85.2 for GPT-2 Large) but is slow because each diffusion step runs the full 770M-parameter GPT-2 backbone. My CS 5220 (parallel computing) project optimizes this inference pipeline using profiling, roofline analysis, custom Metal GPU kernels for Apple Silicon, and structural code changes.
@@ -299,3 +321,108 @@ Apple M4 Max, 40-core GPU, 128 GB unified memory, 546 GB/s memory bandwidth. PyT
 ## Codebase
 
 1,700 lines of Metal + Obj-C++ kernel code. ~1,000 lines of optimized PyTorch (streamlined forward, fast generate, KV-cache management). ~3,300 lines of profiling, benchmarking, and evaluation scripts. All at https://github.com/srkvatsa/STAR-LDM/tree/perf/mps-compat-and-profiling
+
+## How each optimization works in detail
+
+### Streamlined GPT-2 forward — what exactly changes
+
+The HuggingFace GPT2LMHeadModel.forward() does this per layer:
+1. Check if cross-attention is needed (it's not, but the code checks)
+2. Build a causal attention mask using arange, le, where — 72 dispatches for mask creation alone
+3. Check cache type (DynamicCache vs legacy tuple), update cache state
+4. Run attention with the constructed mask
+5. Various tensor format conversions (view, permute, contiguous)
+
+Our streamlined forward per layer:
+1. F.layer_norm(x, weight, bias)
+2. F.linear(h, weight.T, bias) — QKV projection
+3. reshape + transpose for multi-head
+4. Write new KV into pre-allocated buffer slots
+5. F.scaled_dot_product_attention(q, k_buf, v_buf) — no mask needed
+6. reshape back
+7. F.linear(a, weight.T, bias) — output projection + residual
+8. F.layer_norm — second norm
+9. F.linear, F.gelu, F.linear — FFN
+10. residual
+
+That's 12 ops vs ~170 ops in HuggingFace. The math is identical. The difference is purely in framework overhead eliminated.
+
+Why no causal mask: the 8 soft prompt tokens are generated simultaneously by the non-causal SPG transformer. There is no sequential dependency between them. The causal mask in GPT-2 is an architectural artifact of the autoregressive training, not a semantic requirement for the soft prompt processing during diffusion. This needs quality validation (listed as future work).
+
+### KV-cache with pre-allocated buffers — why torch.cat was catastrophic
+
+Original approach (naive KV-cache):
+```
+for step in range(50):
+    for layer in range(36):
+        k_new = project_key(soft_prompt)  # (1, 20, 8, 64)
+        k_full = torch.cat([prefix_k, k_new], dim=2)  # allocates NEW tensor
+        v_full = torch.cat([prefix_v, v_new], dim=2)  # allocates NEW tensor
+```
+
+This does 36 × 50 = 1,800 tensor allocations per generation. Each allocation at prefix=512 creates a (1, 20, 520, 64) tensor = 2.6MB. Total: 1,800 × 2.6MB = 4.7GB of allocation churn. On MPS, this causes memory fragmentation and GC pauses. At prefix=200, we measured 10x slowdown from allocation alone.
+
+Our approach:
+```
+# Once before the loop:
+for layer in range(36):
+    k_buf = torch.empty(1, 20, prefix_len + 8, 64)  # pre-allocate
+    k_buf[:, :, :prefix_len] = prefix_k  # copy prefix once
+
+# In the loop:
+for step in range(50):
+    for layer in range(36):
+        k_new = project_key(soft_prompt)
+        k_buf[:, :, prefix_len:] = k_new  # write into existing buffer, no allocation
+```
+
+Zero allocation in the diffusion loop. The prefix KV is written once. Only the 8 soft-prompt positions are updated each step via in-place slice assignment.
+
+### Metal kernel architecture details
+
+**RMSNorm+FiLM kernel (rmsnorm_film.metal, 116 lines):**
+- One threadgroup per (batch, token) pair
+- Threads within the threadgroup cooperate on the D=1024 dimension
+- Phase 1: parallel reduction to compute L2 norm (using threadgroup shared memory)
+- Phase 2: normalize, apply learned gamma, apply FiLM scale and shift
+- The FiLM parameters (scale, shift) come from the time-conditioning MLP and are broadcast across all 8 tokens
+- Replaces 3-4 separate dispatches (norm, linear for time cond, scale+shift) with 1
+
+**Tiny attention kernel (tiny_attention.metal, 158 lines):**
+- One threadgroup per (batch, head) pair — 16 heads × batch_size threadgroups
+- The entire Q, K, V for 8 tokens × 64 head_dim = 512 floats per matrix
+- All fit in threadgroup shared memory (3 × 512 × 4 bytes = 6KB, well within 32KB limit)
+- Includes fused QK-normalization (RMSNorm on Q and K before attention)
+- Full 8×8 attention matrix computed and stored in shared memory
+- Direct softmax (sum all 8 values, no online algorithm needed)
+- No tiling, no streaming, no global memory access for intermediate results
+
+**Why the DDPM step kernel fails (ddpm_step.metal, 63 lines):**
+- The DDPM update operates on a 768-dim vector: z_{t-1} = f(z_t, eps, noise, alpha2)
+- Working set: 3 × 768 × 4 bytes = 9KB input + 768 × 4 bytes output = 12KB total
+- This fits entirely in L1 cache
+- JIT-scripted PyTorch fuses the elementwise ops and executes them within the MPS runtime without a separate kernel dispatch
+- Our Metal kernel adds a dispatch: encode command buffer, bind buffers, set threadgroup size, dispatch, wait. This dispatch cost (~0.075ms) exceeds the compute savings
+- Lesson: kernel fusion only helps when dispatch overhead is a significant fraction of compute time. For 12KB tensors, it never is.
+
+**Why the fused FFN kernel fails (fused_ffn.metal, 173 lines):**
+- The FFN does two GEMMs: (8, 1280) × (1280, 5120) then (8, 5120) × (5120, 1280)
+- The weight matrices are 25MB each — way too large for shared memory
+- Our kernel loops over the inner dimension sequentially: each thread accumulates one output element by reading 1280 (or 5120) values one at a time
+- Apple's BLAS uses tiled matrix multiplication with SIMD matrix operations, memory prefetching, and optimal cache line utilization
+- Our naive loop does ~1 useful FLOP per memory read; BLAS does ~16-64 via tiling
+- Result: 127x slower. You cannot out-kernel a vendor's optimized BLAS with a naive loop.
+
+## Key insight for the poster
+
+The central finding is a hierarchy of bottlenecks:
+
+1. **Framework dispatch overhead** (solved by streamlined forward): the dominant bottleneck, responsible for 93% of operator dispatches. Eliminated by rewriting 40 lines of PyTorch.
+
+2. **Redundant computation** (solved by KV-cache): the baseline re-processes O(prefix_length) tokens at every step. KV-cache makes it O(1). This is the scaling result.
+
+3. **GPU kernel efficiency** (partially solved by Metal shaders): the micro-transformer ops run at <1% of hardware ceiling due to dispatch latency. Metal kernels help non-GEMM ops (1.7-2.4x) but can't beat BLAS for matrix multiplications.
+
+The surprise is the ordering. We expected #3 to be the main contribution (this is a parallel computing course). Instead, #1 and #2 dominate. The Metal kernels contribute ~47ms out of 2,282ms baseline (2%). But they demonstrate where GPU parallelism helps and where it doesn't, which is the analytical contribution.
+
+For the course: the parallel programming requirement is met by the 1,700 lines of Metal shaders (threadgroup hierarchy, SIMD reductions, shared memory, register-resident computation). The performance optimization is met by the KV-cache buffers and streamlined forward. The performance analysis is met by the roofline analysis, dispatch count profiling, and prefix-length scaling study. The project hits all three required elements even though the parallel programming part turned out to be the least impactful numerically.
